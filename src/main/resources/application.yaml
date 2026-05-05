@@ -1,3 +1,8 @@
 spring:
   application:
     name: AI13-BE
+
+solar:
+  api:
+    api-key: ${UPSTAGE_API_KEY}
+    model: solar-pro3
