@@ -1,6 +1,18 @@
 spring:
   application:
     name: AI13-BE
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ai13}
+    username: ${DB_USERNAME:ai13}
+    password: ${DB_PASSWORD:ai13}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
 
 solar:
   api:
