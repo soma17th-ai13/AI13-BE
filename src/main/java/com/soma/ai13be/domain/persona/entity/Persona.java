@@ -46,10 +46,12 @@ public class Persona extends BaseTimeEntity {
 	@Column(nullable = false, length = 30)
 	private DomainType domainType;
 
+	// Solar API 호출 시 사용할 시스템 프롬프트
 	@Lob
 	@Column(nullable = false)
 	private String systemPrompt;
 
+	// 현재 사용 가능한 페르소나인지 여부
 	@Column(nullable = false)
 	private boolean enabled;
 

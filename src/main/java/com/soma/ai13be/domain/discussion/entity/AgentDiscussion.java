@@ -39,21 +39,26 @@ public class AgentDiscussion extends BaseTimeEntity {
 	@JoinColumn(name = "owner_id", nullable = false)
 	private UserAccount owner;
 
+	// 토론을 시작하게 만든 지식 노드
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "trigger_node_id")
 	private KnowledgeNode triggerNode;
 
+	// 토론 상태
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 30)
 	private DiscussionStatus status;
 
+	// 토론 제목
 	@Column(nullable = false, length = 255)
 	private String title;
 
+	// 최종 요약
 	@Lob
 	@Column
 	private String summary;
 
+	// 실행 계획
 	@Lob
 	@Column
 	private String actionPlan;

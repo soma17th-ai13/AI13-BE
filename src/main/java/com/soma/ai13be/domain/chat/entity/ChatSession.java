@@ -32,14 +32,17 @@ public class ChatSession extends BaseTimeEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	// 채팅을 생성한 사용자
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "owner_id", nullable = false)
 	private UserAccount owner;
 
+	// 연결된 페르소나, 질문 라우팅 전이면 비어있을 수 있음
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "persona_id")
 	private Persona persona;
 
+	// 채팅방 제목
 	@Column(nullable = false, length = 255)
 	private String title;
 

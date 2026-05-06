@@ -43,13 +43,16 @@ public class ChatMessage extends BaseTimeEntity {
 	@JoinColumn(name = "session_id", nullable = false)
 	private ChatSession session;
 
+	// 세션 안에서의 메시지 순서
 	@Column(name = "message_sequence", nullable = false)
 	private int sequence;
 
+	// 메시지 역할: SYSTEM, USER, ASSISTANT
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 30)
 	private ChatMessageRole role;
 
+	// 메시지 내용
 	@Lob
 	@Column(nullable = false)
 	private String content;
