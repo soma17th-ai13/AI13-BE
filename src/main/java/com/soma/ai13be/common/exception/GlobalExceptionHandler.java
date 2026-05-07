@@ -7,7 +7,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.soma.ai13be.common.dto.ErrorResponse;
+import com.soma.ai13be.domain.persona.exception.BuiltInPersonaDeletionException;
 import com.soma.ai13be.domain.persona.exception.DuplicatePersonaException;
+import com.soma.ai13be.domain.persona.exception.PersonaNotFoundException;
 import com.soma.ai13be.domain.persona.exception.PersonaPromptGenerationException;
 
 /**
@@ -26,6 +28,18 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(PersonaPromptGenerationException.class)
 	public ResponseEntity<ErrorResponse> handlePromptGenerationFailure(PersonaPromptGenerationException exception) {
 		return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+			.body(new ErrorResponse(exception.getMessage()));
+	}
+
+	@ExceptionHandler(PersonaNotFoundException.class)
+	public ResponseEntity<ErrorResponse> handlePersonaNotFound(PersonaNotFoundException exception) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+			.body(new ErrorResponse(exception.getMessage()));
+	}
+
+	@ExceptionHandler(BuiltInPersonaDeletionException.class)
+	public ResponseEntity<ErrorResponse> handleBuiltInPersonaDeletion(BuiltInPersonaDeletionException exception) {
+		return ResponseEntity.status(HttpStatus.CONFLICT)
 			.body(new ErrorResponse(exception.getMessage()));
 	}
 
