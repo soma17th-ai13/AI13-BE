@@ -21,7 +21,7 @@ class KnowledgeContextBuilderTest {
 
     @Test
     void returnsEmptyWhenNoNodesExist() {
-        when(nodeRepository.findByDomainNameOrderByCreatedAtDesc("건강")).thenReturn(List.of());
+        when(nodeRepository.findTop15ByDomainNameOrderByCreatedAtDesc("건강")).thenReturn(List.of());
 
         Optional<SolarChatMessage> result = builder.buildContextMessage("건강");
 
@@ -32,7 +32,7 @@ class KnowledgeContextBuilderTest {
     void returnsSystemMessageWithFormattedNodes() {
         KnowledgeNode node1 = node("수면 패턴", "하루 5시간 수면");
         KnowledgeNode node2 = node("피로감", "오후에 집중력 저하");
-        when(nodeRepository.findByDomainNameOrderByCreatedAtDesc("건강"))
+        when(nodeRepository.findTop15ByDomainNameOrderByCreatedAtDesc("건강"))
             .thenReturn(List.of(node1, node2));
 
         Optional<SolarChatMessage> result = builder.buildContextMessage("건강");
@@ -49,19 +49,18 @@ class KnowledgeContextBuilderTest {
 
     @Test
     void limitsToMostRecent15Nodes() {
-        List<KnowledgeNode> twentyNodes = IntStream.rangeClosed(1, 20)
+        List<KnowledgeNode> fifteenNodes = IntStream.rangeClosed(1, 15)
             .mapToObj(i -> node("노드" + i, "내용" + i))
             .toList();
-        when(nodeRepository.findByDomainNameOrderByCreatedAtDesc("건강"))
-            .thenReturn(twentyNodes);
+        when(nodeRepository.findTop15ByDomainNameOrderByCreatedAtDesc("건강"))
+            .thenReturn(fifteenNodes);
 
         Optional<SolarChatMessage> result = builder.buildContextMessage("건강");
 
         assertThat(result).isPresent();
         String content = result.get().content();
-        assertThat(content).contains("노드1");
-        assertThat(content).doesNotContain("노드16");
-        assertThat(content).doesNotContain("노드20");
+        assertThat(content).contains("15. 제목:");
+        assertThat(content).doesNotContain("16. 제목:");
     }
 
     private KnowledgeNode node(String title, String content) {
