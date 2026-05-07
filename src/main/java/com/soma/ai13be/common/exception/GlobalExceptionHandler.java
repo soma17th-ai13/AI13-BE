@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.soma.ai13be.common.dto.ErrorResponse;
+import com.soma.ai13be.knowledge.exception.KnowledgeExtractionException;
 import com.soma.ai13be.knowledge.exception.KnowledgeNodeNotFoundException;
 import com.soma.ai13be.persona.exception.BuiltInPersonaDeletionException;
 import com.soma.ai13be.persona.exception.DuplicatePersonaException;
@@ -47,6 +48,12 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(KnowledgeNodeNotFoundException.class)
 	public ResponseEntity<ErrorResponse> handleKnowledgeNodeNotFound(KnowledgeNodeNotFoundException exception) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+			.body(new ErrorResponse(exception.getMessage()));
+	}
+
+	@ExceptionHandler(KnowledgeExtractionException.class)
+	public ResponseEntity<ErrorResponse> handleKnowledgeExtractionFailure(KnowledgeExtractionException exception) {
+		return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
 			.body(new ErrorResponse(exception.getMessage()));
 	}
 
