@@ -2,7 +2,6 @@ package com.soma.ai13be.domain.chat.entity;
 
 import com.soma.ai13be.domain.common.BaseTimeEntity;
 import com.soma.ai13be.domain.persona.entity.Persona;
-import com.soma.ai13be.domain.user.entity.UserAccount;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -32,12 +31,6 @@ public class ChatSession extends BaseTimeEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	// 채팅을 생성한 사용자
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "owner_id", nullable = false)
-	private UserAccount owner;
-
-	// 연결된 페르소나, 질문 라우팅 전이면 비어있을 수 있음
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "persona_id")
 	private Persona persona;
@@ -47,8 +40,7 @@ public class ChatSession extends BaseTimeEntity {
 	private String title;
 
 	@Builder
-	private ChatSession(UserAccount owner, Persona persona, String title) {
-		this.owner = owner;
+	private ChatSession(Persona persona, String title) {
 		this.persona = persona;
 		this.title = title;
 	}

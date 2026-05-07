@@ -3,7 +3,6 @@ package com.soma.ai13be.domain.knowledge.entity;
 import java.math.BigDecimal;
 
 import com.soma.ai13be.domain.common.BaseTimeEntity;
-import com.soma.ai13be.domain.user.entity.UserAccount;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,10 +34,6 @@ public class KnowledgeEdge extends BaseTimeEntity {
 	private Long id;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "owner_id", nullable = false)
-	private UserAccount owner;
-
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "source_node_id", nullable = false)
 	private KnowledgeNode sourceNode;
 
@@ -61,14 +56,12 @@ public class KnowledgeEdge extends BaseTimeEntity {
 
 	@Builder
 	private KnowledgeEdge(
-		UserAccount owner,
 		KnowledgeNode sourceNode,
 		KnowledgeNode targetNode,
 		String relationType,
 		BigDecimal confidence,
 		String evidenceText
 	) {
-		this.owner = owner;
 		this.sourceNode = sourceNode;
 		this.targetNode = targetNode;
 		this.relationType = relationType;

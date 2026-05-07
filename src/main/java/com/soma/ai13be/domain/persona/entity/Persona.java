@@ -1,20 +1,13 @@
 package com.soma.ai13be.domain.persona.entity;
 
 import com.soma.ai13be.domain.common.BaseTimeEntity;
-import com.soma.ai13be.domain.knowledge.entity.DomainType;
-import com.soma.ai13be.domain.user.entity.UserAccount;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -22,8 +15,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 사용자별 도메인 전문 에이전트 설정이다.
- * 시스템 프롬프트를 DB에 저장해 기본 페르소나뿐 아니라 사용자 커스텀 페르소나도 코드 변경 없이 지원한다.
+ * 토론에 참여하는 도메인별 AI 페르소나입니다.
+ *
+ * <p>기본 페르소나는 {@code data.sql}로 미리 저장하고, 사용자가 추가하는 페르소나는
+ * {@code PersonaService}가 Solar를 호출해 생성한 system prompt를 저장합니다.</p>
  */
 @Getter
 @Entity
@@ -35,32 +30,44 @@ public class Persona extends BaseTimeEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "owner_id", nullable = false)
-	private UserAccount owner;
+	/**
+	 * 페르소나가 담당하는 도메인 이름입니다.
+	 * 별도 도메인 테이블 없이 이 값을 기준으로 중복 생성을 막고 토론 참여자를 구분합니다.
+	 */
+	@Column(nullable = false, unique = true, length = 100)
+	private String domainName;
 
+	/**
+	 * 화면에 표시할 페르소나 이름입니다.
+	 */
 	@Column(nullable = false, length = 100)
 	private String name;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false, length = 30)
-	private DomainType domainType;
-
-	// Solar API 호출 시 사용할 시스템 프롬프트
+	/**
+	 * 토론 중 이 페르소나가 응답할 때 Solar system 메시지로 사용할 프롬프트입니다.
+	 */
 	@Lob
 	@Column(nullable = false)
 	private String systemPrompt;
 
-	// 현재 사용 가능한 페르소나인지 여부
+	/**
+	 * 초기 데이터로 제공되는 기본 페르소나인지 구분합니다.
+	 */
+	@Column(nullable = false)
+	private boolean builtIn;
+
+	/**
+	 * 삭제 대신 비활성화할 때 사용하는 플래그입니다.
+	 */
 	@Column(nullable = false)
 	private boolean enabled;
 
 	@Builder
-	private Persona(UserAccount owner, String name, DomainType domainType, String systemPrompt, boolean enabled) {
-		this.owner = owner;
+	private Persona(String domainName, String name, String systemPrompt, boolean builtIn, boolean enabled) {
+		this.domainName = domainName;
 		this.name = name;
-		this.domainType = domainType;
 		this.systemPrompt = systemPrompt;
+		this.builtIn = builtIn;
 		this.enabled = enabled;
 	}
 }
