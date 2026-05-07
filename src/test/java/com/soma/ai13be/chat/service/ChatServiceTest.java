@@ -33,7 +33,9 @@ class ChatServiceTest {
 	private final ChatMessageRepository messageRepository = org.mockito.Mockito.mock(ChatMessageRepository.class);
 	private final PersonaRepository personaRepository = org.mockito.Mockito.mock(PersonaRepository.class);
 	private final SolarApiClient solarApiClient = org.mockito.Mockito.mock(SolarApiClient.class);
-	private final ChatService service = new ChatService(sessionRepository, messageRepository, personaRepository, solarApiClient);
+	private final com.soma.ai13be.knowledge.service.KnowledgeContextBuilder knowledgeContextBuilder =
+		org.mockito.Mockito.mock(com.soma.ai13be.knowledge.service.KnowledgeContextBuilder.class);
+	private final ChatService service = new ChatService(sessionRepository, messageRepository, personaRepository, solarApiClient, knowledgeContextBuilder);
 
 	// ── createSession ───────────────────────────────────────────────────────────
 
@@ -74,6 +76,7 @@ class ChatServiceTest {
 	void sendsFirstMessageAndReturnsAssistantReply() {
 		ChatSession session = sessionWithPersona("health", "health system prompt");
 		when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
+		when(knowledgeContextBuilder.buildContextMessage("health")).thenReturn(java.util.Optional.empty());
 		when(messageRepository.countBySession(session)).thenReturn(0L);
 		when(messageRepository.findBySessionOrderBySequenceAsc(session)).thenReturn(List.of());
 		when(messageRepository.save(any(ChatMessage.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -94,6 +97,7 @@ class ChatServiceTest {
 		ChatMessage prevAssist = chatMessage(session, 1, ChatMessageRole.ASSISTANT, "이전 답변");
 
 		when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
+		when(knowledgeContextBuilder.buildContextMessage("health")).thenReturn(java.util.Optional.empty());
 		when(messageRepository.countBySession(session)).thenReturn(2L);
 		when(messageRepository.findBySessionOrderBySequenceAsc(session)).thenReturn(List.of(prevUser, prevAssist));
 		when(messageRepository.save(any(ChatMessage.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -122,6 +126,7 @@ class ChatServiceTest {
 	void assignsSequentialMessageNumbers() {
 		ChatSession session = sessionWithPersona("health", "prompt");
 		when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
+		when(knowledgeContextBuilder.buildContextMessage("health")).thenReturn(java.util.Optional.empty());
 		when(messageRepository.countBySession(session)).thenReturn(4L);
 		when(messageRepository.findBySessionOrderBySequenceAsc(session)).thenReturn(List.of());
 		when(solarApiClient.chatCompletion(any())).thenReturn(solarResponse("답변"));
@@ -192,6 +197,60 @@ class ChatServiceTest {
 			.isInstanceOf(CustomException.class)
 			.hasFieldOrPropertyWithValue("errorCode", ErrorCode.CHAT_SESSION_NOT_FOUND)
 			.hasMessageContaining("99");
+	}
+
+	// ── knowledge context injection ─────────────────────────────────────────────
+
+	@Test
+	void injectsKnowledgeContextBetweenSystemPromptAndHistory() {
+		ChatSession session = sessionWithPersona("health", "health system prompt");
+		when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
+		when(knowledgeContextBuilder.buildContextMessage("health"))
+			.thenReturn(Optional.of(SolarChatMessage.system("[사용자 지식 그래프 - health 도메인]\n1. 제목: 수면\n   내용: 5시간")));
+		when(messageRepository.countBySession(session)).thenReturn(0L);
+		when(messageRepository.findBySessionOrderBySequenceAsc(session)).thenReturn(List.of());
+		when(messageRepository.save(any(ChatMessage.class))).thenAnswer(inv -> inv.getArgument(0));
+		when(solarApiClient.chatCompletion(any(SolarChatRequest.class)))
+			.thenReturn(solarResponse("답변"));
+
+		service.sendMessage(1L, "질문");
+
+		ArgumentCaptor<SolarChatRequest> captor = ArgumentCaptor.forClass(SolarChatRequest.class);
+		verify(solarApiClient).chatCompletion(captor.capture());
+
+		List<SolarChatMessage> messages = captor.getValue().messages();
+		// system(role) + system(knowledge) + user
+		assertThat(messages).hasSize(3);
+		assertThat(messages.get(0).role()).isEqualTo("system");
+		assertThat(messages.get(0).content()).isEqualTo("health system prompt");
+		assertThat(messages.get(1).role()).isEqualTo("system");
+		assertThat(messages.get(1).content()).contains("[사용자 지식 그래프 - health 도메인]");
+		assertThat(messages.get(2).role()).isEqualTo("user");
+		assertThat(messages.get(2).content()).isEqualTo("질문");
+	}
+
+	@Test
+	void skipsKnowledgeContextWhenNoNodes() {
+		ChatSession session = sessionWithPersona("health", "health system prompt");
+		when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
+		when(knowledgeContextBuilder.buildContextMessage("health"))
+			.thenReturn(Optional.empty());
+		when(messageRepository.countBySession(session)).thenReturn(0L);
+		when(messageRepository.findBySessionOrderBySequenceAsc(session)).thenReturn(List.of());
+		when(messageRepository.save(any(ChatMessage.class))).thenAnswer(inv -> inv.getArgument(0));
+		when(solarApiClient.chatCompletion(any(SolarChatRequest.class)))
+			.thenReturn(solarResponse("답변"));
+
+		service.sendMessage(1L, "질문");
+
+		ArgumentCaptor<SolarChatRequest> captor = ArgumentCaptor.forClass(SolarChatRequest.class);
+		verify(solarApiClient).chatCompletion(captor.capture());
+
+		List<SolarChatMessage> messages = captor.getValue().messages();
+		// system(role) + user only
+		assertThat(messages).hasSize(2);
+		assertThat(messages.get(0).content()).isEqualTo("health system prompt");
+		assertThat(messages.get(1).role()).isEqualTo("user");
 	}
 
 	// ── helpers ──────────────────────────────────────────────────────────────────
