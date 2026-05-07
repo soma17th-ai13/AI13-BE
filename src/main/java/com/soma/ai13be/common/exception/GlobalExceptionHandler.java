@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.soma.ai13be.common.dto.ErrorResponse;
+import com.soma.ai13be.domain.knowledge.exception.KnowledgeNodeNotFoundException;
 import com.soma.ai13be.domain.persona.exception.BuiltInPersonaDeletionException;
 import com.soma.ai13be.domain.persona.exception.DuplicatePersonaException;
 import com.soma.ai13be.domain.persona.exception.PersonaNotFoundException;
@@ -40,6 +41,18 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(BuiltInPersonaDeletionException.class)
 	public ResponseEntity<ErrorResponse> handleBuiltInPersonaDeletion(BuiltInPersonaDeletionException exception) {
 		return ResponseEntity.status(HttpStatus.CONFLICT)
+			.body(new ErrorResponse(exception.getMessage()));
+	}
+
+	@ExceptionHandler(KnowledgeNodeNotFoundException.class)
+	public ResponseEntity<ErrorResponse> handleKnowledgeNodeNotFound(KnowledgeNodeNotFoundException exception) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+			.body(new ErrorResponse(exception.getMessage()));
+	}
+
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException exception) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 			.body(new ErrorResponse(exception.getMessage()));
 	}
 
