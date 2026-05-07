@@ -7,7 +7,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -46,8 +45,7 @@ public class Persona extends BaseTimeEntity {
 	/**
 	 * 토론 중 이 페르소나가 응답할 때 Solar system 메시지로 사용할 프롬프트입니다.
 	 */
-	@Lob
-	@Column(nullable = false)
+	@Column(nullable = false, columnDefinition = "TEXT")
 	private String systemPrompt;
 
 	/**
