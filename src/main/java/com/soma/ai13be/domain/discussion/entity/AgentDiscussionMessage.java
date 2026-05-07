@@ -21,8 +21,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 토론 라운드별 페르소나 원본 응답이다.
- * 최종 합성 결과가 이상할 때 어떤 페르소나의 어떤 라운드에서 문제가 생겼는지 추적하기 위해 보관한다.
+ * 토론 중 특정 라운드에서 특정 페르소나가 생성한 응답입니다.
+ * 어떤 페르소나가 어느 라운드에서 어떤 주장을 했는지 추적하기 위해 별도 테이블로 분리합니다.
  */
 @Getter
 @Entity
@@ -38,17 +38,14 @@ public class AgentDiscussionMessage extends BaseTimeEntity {
 	@JoinColumn(name = "discussion_id", nullable = false)
 	private AgentDiscussion discussion;
 
-	// 응답한 페르소나
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "persona_id")
 	private Persona persona;
 
-	// 토론 라운드
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 30)
 	private DiscussionRound round;
 
-	// 해당 라운드에서 생성된 분석/반론/합성 내용
 	@Lob
 	@Column(nullable = false)
 	private String content;
