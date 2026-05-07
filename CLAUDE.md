@@ -3,6 +3,13 @@
 - 형식: `<type>: <한국어 요약>`
 - type 종류: `feat`, `fix`, `docs`, `refactor`, `test`, `chore` 등
 
+## PR 규칙
+
+- PR 제목 형식: `<type>: <한국어 요약>`
+- type 종류는 커밋 메시지 규칙과 동일하게 `feat`, `fix`, `docs`, `refactor`, `test`, `chore` 등을 사용한다.
+- PR을 올릴 때는 `.github/pull_request_template.md` 템플릿을 따른다.
+- PR 본문에는 변경 요약, 변경 이유, 영향 범위, 검증 결과를 명확히 작성한다.
+
 ## 프로젝트 기획
 
 - 전체 기획은 `docs/plan.md`를 기준으로 한다.
