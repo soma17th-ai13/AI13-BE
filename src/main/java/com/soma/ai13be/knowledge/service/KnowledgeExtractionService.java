@@ -228,10 +228,17 @@ public class KnowledgeExtractionService {
 
 	private String stripJsonFence(String content) {
 		String stripped = content.strip();
-		if (stripped.startsWith("```")) {
-			stripped = stripped.replaceFirst("^```json\\s*", "");
-			stripped = stripped.replaceFirst("^```\\s*", "");
-			stripped = stripped.replaceFirst("\\s*```$", "");
+		if (!stripped.startsWith("```")) {
+			return stripped;
+		}
+		int firstNewline = stripped.indexOf('\n');
+		if (firstNewline == -1) {
+			return stripped;
+		}
+		stripped = stripped.substring(firstNewline + 1);
+		int lastFence = stripped.lastIndexOf("```");
+		if (lastFence != -1) {
+			stripped = stripped.substring(0, lastFence);
 		}
 		return stripped.strip();
 	}
