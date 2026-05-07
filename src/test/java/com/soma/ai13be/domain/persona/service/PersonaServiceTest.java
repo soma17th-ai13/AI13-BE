@@ -17,12 +17,13 @@ import com.soma.ai13be.common.client.SolarApiClient;
 import com.soma.ai13be.common.client.dto.SolarChatMessage;
 import com.soma.ai13be.common.client.dto.SolarChatRequest;
 import com.soma.ai13be.common.client.dto.SolarChatResponse;
-import com.soma.ai13be.domain.persona.entity.Persona;
-import com.soma.ai13be.domain.persona.exception.BuiltInPersonaDeletionException;
-import com.soma.ai13be.domain.persona.exception.DuplicatePersonaException;
-import com.soma.ai13be.domain.persona.exception.PersonaNotFoundException;
-import com.soma.ai13be.domain.persona.exception.PersonaPromptGenerationException;
-import com.soma.ai13be.domain.persona.repository.PersonaRepository;
+import com.soma.ai13be.persona.entity.Persona;
+import com.soma.ai13be.persona.exception.BuiltInPersonaDeletionException;
+import com.soma.ai13be.persona.exception.DuplicatePersonaException;
+import com.soma.ai13be.persona.exception.PersonaNotFoundException;
+import com.soma.ai13be.persona.exception.PersonaPromptGenerationException;
+import com.soma.ai13be.persona.repository.PersonaRepository;
+import com.soma.ai13be.persona.service.PersonaService;
 
 class PersonaServiceTest {
 

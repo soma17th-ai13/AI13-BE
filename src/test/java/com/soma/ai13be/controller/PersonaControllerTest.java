@@ -13,19 +13,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 
-import com.soma.ai13be.domain.persona.controller.PersonaController;
+import com.soma.ai13be.persona.controller.PersonaController;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.soma.ai13be.common.exception.GlobalExceptionHandler;
-import com.soma.ai13be.domain.persona.exception.BuiltInPersonaDeletionException;
-import com.soma.ai13be.domain.persona.entity.Persona;
-import com.soma.ai13be.domain.persona.exception.DuplicatePersonaException;
-import com.soma.ai13be.domain.persona.exception.PersonaNotFoundException;
-import com.soma.ai13be.domain.persona.exception.PersonaPromptGenerationException;
-import com.soma.ai13be.domain.persona.service.PersonaService;
+import com.soma.ai13be.persona.exception.BuiltInPersonaDeletionException;
+import com.soma.ai13be.persona.entity.Persona;
+import com.soma.ai13be.persona.exception.DuplicatePersonaException;
+import com.soma.ai13be.persona.exception.PersonaNotFoundException;
+import com.soma.ai13be.persona.exception.PersonaPromptGenerationException;
+import com.soma.ai13be.persona.service.PersonaService;
 
 class PersonaControllerTest {
 

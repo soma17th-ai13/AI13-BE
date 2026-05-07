@@ -17,14 +17,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.soma.ai13be.common.exception.GlobalExceptionHandler;
-import com.soma.ai13be.domain.knowledge.controller.KnowledgeGraphController;
-import com.soma.ai13be.domain.knowledge.dto.request.CreateKnowledgeEdgeCommand;
-import com.soma.ai13be.domain.knowledge.dto.request.CreateKnowledgeNodeCommand;
-import com.soma.ai13be.domain.knowledge.dto.response.KnowledgeEdgeResult;
-import com.soma.ai13be.domain.knowledge.dto.response.KnowledgeGraphResult;
-import com.soma.ai13be.domain.knowledge.dto.response.KnowledgeNodeResult;
-import com.soma.ai13be.domain.knowledge.exception.KnowledgeNodeNotFoundException;
-import com.soma.ai13be.domain.knowledge.service.KnowledgeGraphService;
+import com.soma.ai13be.knowledge.controller.KnowledgeGraphController;
+import com.soma.ai13be.knowledge.dto.request.CreateKnowledgeEdgeCommand;
+import com.soma.ai13be.knowledge.dto.request.CreateKnowledgeNodeCommand;
+import com.soma.ai13be.knowledge.dto.response.KnowledgeEdgeResult;
+import com.soma.ai13be.knowledge.dto.response.KnowledgeGraphResult;
+import com.soma.ai13be.knowledge.dto.response.KnowledgeNodeResult;
+import com.soma.ai13be.knowledge.exception.KnowledgeNodeNotFoundException;
+import com.soma.ai13be.knowledge.service.KnowledgeGraphService;
 
 class KnowledgeGraphControllerTest {
 

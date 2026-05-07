@@ -13,14 +13,15 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import com.soma.ai13be.domain.knowledge.dto.request.CreateKnowledgeEdgeCommand;
-import com.soma.ai13be.domain.knowledge.dto.request.CreateKnowledgeNodeCommand;
-import com.soma.ai13be.domain.knowledge.dto.response.KnowledgeGraphResult;
-import com.soma.ai13be.domain.knowledge.entity.KnowledgeEdge;
-import com.soma.ai13be.domain.knowledge.entity.KnowledgeNode;
-import com.soma.ai13be.domain.knowledge.exception.KnowledgeNodeNotFoundException;
-import com.soma.ai13be.domain.knowledge.repository.KnowledgeEdgeRepository;
-import com.soma.ai13be.domain.knowledge.repository.KnowledgeNodeRepository;
+import com.soma.ai13be.knowledge.dto.request.CreateKnowledgeEdgeCommand;
+import com.soma.ai13be.knowledge.dto.request.CreateKnowledgeNodeCommand;
+import com.soma.ai13be.knowledge.dto.response.KnowledgeGraphResult;
+import com.soma.ai13be.knowledge.entity.KnowledgeEdge;
+import com.soma.ai13be.knowledge.entity.KnowledgeNode;
+import com.soma.ai13be.knowledge.exception.KnowledgeNodeNotFoundException;
+import com.soma.ai13be.knowledge.repository.KnowledgeEdgeRepository;
+import com.soma.ai13be.knowledge.repository.KnowledgeNodeRepository;
+import com.soma.ai13be.knowledge.service.KnowledgeGraphService;
 
 class KnowledgeGraphServiceTest {
 

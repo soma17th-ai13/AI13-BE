@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.soma.ai13be.common.dto.ErrorResponse;
-import com.soma.ai13be.domain.knowledge.exception.KnowledgeNodeNotFoundException;
-import com.soma.ai13be.domain.persona.exception.BuiltInPersonaDeletionException;
-import com.soma.ai13be.domain.persona.exception.DuplicatePersonaException;
-import com.soma.ai13be.domain.persona.exception.PersonaNotFoundException;
-import com.soma.ai13be.domain.persona.exception.PersonaPromptGenerationException;
+import com.soma.ai13be.knowledge.exception.KnowledgeNodeNotFoundException;
+import com.soma.ai13be.persona.exception.BuiltInPersonaDeletionException;
+import com.soma.ai13be.persona.exception.DuplicatePersonaException;
+import com.soma.ai13be.persona.exception.PersonaNotFoundException;
+import com.soma.ai13be.persona.exception.PersonaPromptGenerationException;
 
 /**
  * 도메인 예외를 HTTP 응답으로 변환하는 전역 예외 처리기입니다.
