@@ -34,7 +34,8 @@ class KnowledgeExtractionControllerTest {
 		when(knowledgeExtractionService.extractAndStore(any(ExtractKnowledgeCommand.class)))
 			.thenReturn(new KnowledgeExtractionResult(
 				List.of(nodeResult(1L, "수면 부족", "건강")),
-				List.of(edgeResult(10L, 1L, 2L, "AFFECTS"))
+				List.of(edgeResult(10L, 1L, 2L, "AFFECTS")),
+				List.of()
 			));
 
 		mockMvc.perform(post("/api/knowledge/extractions")

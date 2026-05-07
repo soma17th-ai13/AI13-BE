@@ -11,10 +11,17 @@ public record KnowledgeExtractionResult(
 	List<KnowledgeNodeResult> nodes,
 
 	@ArraySchema(schema = @Schema(implementation = KnowledgeEdgeResult.class))
-	List<KnowledgeEdgeResult> edges
+	List<KnowledgeEdgeResult> edges,
+
+	@ArraySchema(schema = @Schema(
+		description = "기존 페르소나 도메인에 매칭되지 않아 신규 페르소나 후보로 제안된 도메인 이름",
+		example = "업무"
+	))
+	List<String> suggestedDomains
 ) {
 	public KnowledgeExtractionResult {
 		nodes = List.copyOf(nodes == null ? List.of() : nodes);
 		edges = List.copyOf(edges == null ? List.of() : edges);
+		suggestedDomains = List.copyOf(suggestedDomains == null ? List.of() : suggestedDomains);
 	}
 }

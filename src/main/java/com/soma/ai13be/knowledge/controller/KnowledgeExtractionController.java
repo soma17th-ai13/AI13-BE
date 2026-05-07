@@ -33,7 +33,8 @@ public class KnowledgeExtractionController {
 
 	@Operation(
 		summary = "개인 지식 추출 및 저장",
-		description = "사용자의 자유 텍스트를 Solar LLM으로 분석해 지식 그래프 노드와 엣지를 추출하고 저장합니다."
+		description = "사용자의 자유 텍스트를 Solar LLM으로 분석해 지식 그래프 노드와 엣지를 추출하고 저장합니다. "
+			+ "노드 도메인은 현재 활성 페르소나 도메인 중에서 매칭하며, 매칭되지 않는 도메인은 suggestedDomains로 신규 페르소나 후보를 반환합니다."
 	)
 	@ApiResponses({
 		@ApiResponse(responseCode = "201", description = "지식 추출 및 저장 성공",

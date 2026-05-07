@@ -2,7 +2,11 @@ package com.soma.ai13be.knowledge.service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +27,8 @@ import com.soma.ai13be.knowledge.dto.response.KnowledgeExtractionResult;
 import com.soma.ai13be.knowledge.dto.response.KnowledgeNodeResult;
 import com.soma.ai13be.knowledge.entity.KnowledgeEdge;
 import com.soma.ai13be.knowledge.entity.KnowledgeNode;
+import com.soma.ai13be.persona.entity.Persona;
+import com.soma.ai13be.persona.repository.PersonaRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,13 +39,17 @@ public class KnowledgeExtractionService {
 	private static final String SYSTEM_PROMPT = """
 		너는 개인 지식 그래프 추출기다.
 		사용자의 자유 텍스트에서 개인 지식 노드와 노드 사이의 방향성 관계만 추출한다.
+		%s
+		각 노드는 먼저 현재 사용 가능한 도메인 페르소나 중 가장 적절한 domainName을 선택한다.
+		어떤 도메인 페르소나에도 자연스럽게 속하지 않으면 domainName은 null로 두고 suggestedDomainName에 새 도메인 이름을 제안한다.
 		반드시 아래 JSON 형식만 반환하고, 설명 문장이나 마크다운 코드 블록은 포함하지 않는다.
 		{
 		  "nodes": [
 		    {
 		      "title": "짧은 노드 제목",
 		      "content": "원문에 근거한 구체적 설명",
-		      "domainName": "건강|학습|금융|취미|업무|기타 중 하나",
+		      "domainName": "현재 사용 가능한 도메인 페르소나 이름 또는 null",
+		      "suggestedDomainName": "신규 도메인 후보 또는 null",
 		      "nodeType": "USER_INPUT"
 		    }
 		  ],
@@ -59,15 +69,18 @@ public class KnowledgeExtractionService {
 
 	private final SolarApiClient solarApiClient;
 	private final KnowledgeGraphService knowledgeGraphService;
+	private final PersonaRepository personaRepository;
 	private final ObjectMapper objectMapper;
 
 	@Transactional
 	public KnowledgeExtractionResult extractAndStore(ExtractKnowledgeCommand command) {
 		validateCommand(command);
+		List<String> personaDomains = findEnabledPersonaDomains();
+		Set<String> personaDomainSet = Set.copyOf(personaDomains);
 
 		String content = solarApiClient.chatCompletion(new SolarChatRequest(
 			List.of(
-				SolarChatMessage.system(SYSTEM_PROMPT),
+				SolarChatMessage.system(systemPrompt(personaDomains)),
 				SolarChatMessage.user(command.text().strip())
 			),
 			0.0,
@@ -75,53 +88,80 @@ public class KnowledgeExtractionService {
 		)).firstContent();
 
 		ExtractedKnowledge extractedKnowledge = parseExtraction(content);
-		List<KnowledgeNode> savedNodes = saveNodes(extractedKnowledge.nodes());
-		List<KnowledgeEdge> savedEdges = saveEdges(savedNodes, extractedKnowledge.edges());
+		List<String> suggestedDomains = suggestedDomains(extractedKnowledge.nodes(), personaDomainSet);
+		SavedNodes savedNodes = saveNodes(extractedKnowledge.nodes(), personaDomainSet, !suggestedDomains.isEmpty());
+		List<KnowledgeEdge> savedEdges = saveEdges(savedNodes.nodesByOriginalIndex(), extractedKnowledge.edges());
 
 		return new KnowledgeExtractionResult(
-			savedNodes.stream()
+			savedNodes.nodes().stream()
 				.map(KnowledgeNodeResult::from)
 				.toList(),
 			savedEdges.stream()
 				.map(KnowledgeEdgeResult::from)
-				.toList()
+				.toList(),
+			suggestedDomains
 		);
 	}
 
-	private List<KnowledgeNode> saveNodes(List<ExtractedNode> nodes) {
+	private List<String> findEnabledPersonaDomains() {
+		return personaRepository.findByEnabledTrueOrderByDomainNameAsc().stream()
+			.map(Persona::getDomainName)
+			.filter(StringUtils::hasText)
+			.map(String::strip)
+			.distinct()
+			.toList();
+	}
+
+	private String systemPrompt(List<String> personaDomains) {
+		String domainGuide = personaDomains.isEmpty()
+			? "현재 사용 가능한 도메인 페르소나가 없다."
+			: personaDomains.stream()
+				.map(domain -> "- " + domain)
+				.reduce("현재 사용 가능한 도메인 페르소나:", (left, right) -> left + "\n" + right);
+
+		return SYSTEM_PROMPT.formatted(domainGuide);
+	}
+
+	private SavedNodes saveNodes(List<ExtractedNode> nodes, Set<String> personaDomains, boolean hasSuggestedDomains) {
 		if (nodes == null || nodes.isEmpty()) {
 			throw new CustomException(ErrorCode.KNOWLEDGE_EXTRACTION_FAILED, "No knowledge nodes were extracted.");
 		}
 
 		List<KnowledgeNode> savedNodes = new ArrayList<>();
-		for (ExtractedNode node : nodes) {
-			if (!StringUtils.hasText(node.title())
+		Map<Integer, KnowledgeNode> nodesByOriginalIndex = new HashMap<>();
+		for (int index = 0; index < nodes.size(); index++) {
+			ExtractedNode node = nodes.get(index);
+			if (node == null
+				|| !StringUtils.hasText(node.title())
 				|| !StringUtils.hasText(node.content())
-				|| !StringUtils.hasText(node.domainName())) {
+				|| !StringUtils.hasText(node.domainName())
+				|| !personaDomains.contains(node.domainName().strip())) {
 				continue;
 			}
-			savedNodes.add(knowledgeGraphService.createNode(new CreateKnowledgeNodeCommand(
+			KnowledgeNode savedNode = knowledgeGraphService.createNode(new CreateKnowledgeNodeCommand(
 				node.title(),
 				node.content(),
-				node.domainName(),
+				node.domainName().strip(),
 				StringUtils.hasText(node.nodeType()) ? node.nodeType() : "USER_INPUT"
-			)));
+			));
+			savedNodes.add(savedNode);
+			nodesByOriginalIndex.put(index, savedNode);
 		}
 
-		if (savedNodes.isEmpty()) {
+		if (savedNodes.isEmpty() && !hasSuggestedDomains) {
 			throw new CustomException(ErrorCode.KNOWLEDGE_EXTRACTION_FAILED, "No valid knowledge nodes were extracted.");
 		}
-		return savedNodes;
+		return new SavedNodes(savedNodes, nodesByOriginalIndex);
 	}
 
-	private List<KnowledgeEdge> saveEdges(List<KnowledgeNode> savedNodes, List<ExtractedEdge> edges) {
+	private List<KnowledgeEdge> saveEdges(Map<Integer, KnowledgeNode> savedNodes, List<ExtractedEdge> edges) {
 		if (edges == null || edges.isEmpty()) {
 			return List.of();
 		}
 
 		List<KnowledgeEdge> savedEdges = new ArrayList<>();
 		for (ExtractedEdge edge : edges) {
-			if (!isValidEdge(edge, savedNodes.size())) {
+			if (!isValidEdge(edge, savedNodes)) {
 				continue;
 			}
 			KnowledgeNode sourceNode = savedNodes.get(edge.sourceNodeIndex());
@@ -137,16 +177,35 @@ public class KnowledgeExtractionService {
 		return savedEdges;
 	}
 
-	private boolean isValidEdge(ExtractedEdge edge, int nodeCount) {
+	private boolean isValidEdge(ExtractedEdge edge, Map<Integer, KnowledgeNode> savedNodes) {
 		return edge != null
 			&& edge.sourceNodeIndex() != null
 			&& edge.targetNodeIndex() != null
-			&& edge.sourceNodeIndex() >= 0
-			&& edge.targetNodeIndex() >= 0
-			&& edge.sourceNodeIndex() < nodeCount
-			&& edge.targetNodeIndex() < nodeCount
+			&& savedNodes.containsKey(edge.sourceNodeIndex())
+			&& savedNodes.containsKey(edge.targetNodeIndex())
 			&& !edge.sourceNodeIndex().equals(edge.targetNodeIndex())
 			&& StringUtils.hasText(edge.relationType());
+	}
+
+	private List<String> suggestedDomains(List<ExtractedNode> nodes, Set<String> personaDomains) {
+		if (nodes == null || nodes.isEmpty()) {
+			return List.of();
+		}
+
+		Set<String> suggestedDomains = new LinkedHashSet<>();
+		for (ExtractedNode node : nodes) {
+			if (node == null) {
+				continue;
+			}
+			if (StringUtils.hasText(node.suggestedDomainName())) {
+				suggestedDomains.add(node.suggestedDomainName().strip());
+				continue;
+			}
+			if (StringUtils.hasText(node.domainName()) && !personaDomains.contains(node.domainName().strip())) {
+				suggestedDomains.add(node.domainName().strip());
+			}
+		}
+		return List.copyOf(suggestedDomains);
 	}
 
 	private ExtractedKnowledge parseExtraction(String content) {
@@ -183,6 +242,12 @@ public class KnowledgeExtractionService {
 		}
 	}
 
+	private record SavedNodes(
+		List<KnowledgeNode> nodes,
+		Map<Integer, KnowledgeNode> nodesByOriginalIndex
+	) {
+	}
+
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	private record ExtractedKnowledge(
 		List<ExtractedNode> nodes,
@@ -195,6 +260,7 @@ public class KnowledgeExtractionService {
 		String title,
 		String content,
 		String domainName,
+		String suggestedDomainName,
 		String nodeType
 	) {
 	}
