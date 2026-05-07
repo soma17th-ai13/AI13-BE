@@ -64,6 +64,29 @@ public class PersonaService {
 	}
 
 	@Transactional
+	public Persona regenerate(Long personaId) {
+		Persona persona = personaRepository.findById(personaId)
+			.orElseThrow(() -> new PersonaNotFoundException(personaId));
+
+		String newSystemPrompt = generateSystemPrompt(persona.getDomainName());
+		persona.updateSystemPrompt(newSystemPrompt);
+		return persona;
+	}
+
+	@Transactional
+	public Persona update(Long personaId, String systemPrompt) {
+		if (!StringUtils.hasText(systemPrompt)) {
+			throw new IllegalArgumentException("systemPrompt must not be blank");
+		}
+
+		Persona persona = personaRepository.findById(personaId)
+			.orElseThrow(() -> new PersonaNotFoundException(personaId));
+
+		persona.updateSystemPrompt(systemPrompt.strip());
+		return persona;
+	}
+
+	@Transactional
 	public void delete(Long personaId) {
 		Persona persona = personaRepository.findById(personaId)
 			.orElseThrow(() -> new PersonaNotFoundException(personaId));

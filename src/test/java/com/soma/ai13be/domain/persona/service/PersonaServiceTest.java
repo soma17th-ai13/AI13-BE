@@ -114,6 +114,68 @@ class PersonaServiceTest {
 		verify(personaRepository, never()).delete(any(Persona.class));
 	}
 
+	@Test
+	void regeneratesSystemPrompt() {
+		Persona persona = persona("health", false);
+		when(personaRepository.findById(1L)).thenReturn(Optional.of(persona));
+		when(solarApiClient.chatCompletion(any(SolarChatRequest.class)))
+			.thenReturn(response("Regenerated health persona prompt"));
+
+		Persona updated = service.regenerate(1L);
+
+		assertThat(updated.getSystemPrompt()).isEqualTo("Regenerated health persona prompt");
+		ArgumentCaptor<SolarChatRequest> captor = ArgumentCaptor.forClass(SolarChatRequest.class);
+		verify(solarApiClient).chatCompletion(captor.capture());
+		assertThat(captor.getValue().messages().get(1).content()).contains("Domain: health");
+	}
+
+	@Test
+	void rejectsRegenerateOfUnknownPersona() {
+		when(personaRepository.findById(99L)).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> service.regenerate(99L))
+			.isInstanceOf(PersonaNotFoundException.class)
+			.hasMessageContaining("99");
+	}
+
+	@Test
+	void throwsExceptionWhenRegeneratedPromptIsEmpty() {
+		Persona persona = persona("health", false);
+		when(personaRepository.findById(1L)).thenReturn(Optional.of(persona));
+		when(solarApiClient.chatCompletion(any(SolarChatRequest.class)))
+			.thenReturn(emptyResponse());
+
+		assertThatThrownBy(() -> service.regenerate(1L))
+			.isInstanceOf(PersonaPromptGenerationException.class)
+			.hasMessageContaining("health");
+	}
+
+	@Test
+	void updatesSystemPrompt() {
+		Persona persona = persona("health", false);
+		when(personaRepository.findById(1L)).thenReturn(Optional.of(persona));
+
+		Persona updated = service.update(1L, "  New system prompt  ");
+
+		assertThat(updated.getSystemPrompt()).isEqualTo("New system prompt");
+	}
+
+	@Test
+	void rejectsUpdateWithBlankSystemPrompt() {
+		assertThatThrownBy(() -> service.update(1L, " "))
+			.isInstanceOf(IllegalArgumentException.class)
+			.hasMessageContaining("systemPrompt");
+	}
+
+	@Test
+	void rejectsUpdateOfUnknownPersona() {
+		when(personaRepository.findById(99L)).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> service.update(99L, "New prompt"))
+			.isInstanceOf(PersonaNotFoundException.class)
+			.hasMessageContaining("99");
+	}
+
 	private Persona persona(String domainName, boolean builtIn) {
 		return Persona.builder()
 			.domainName(domainName)

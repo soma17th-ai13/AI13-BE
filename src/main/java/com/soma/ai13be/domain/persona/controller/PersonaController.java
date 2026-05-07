@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.soma.ai13be.domain.persona.dto.request.CreatePersonaCommand;
+import com.soma.ai13be.domain.persona.dto.request.UpdatePersonaCommand;
 import com.soma.ai13be.domain.persona.dto.response.PersonaResult;
 import com.soma.ai13be.domain.persona.entity.Persona;
 import com.soma.ai13be.domain.persona.service.PersonaService;
@@ -50,6 +52,25 @@ public class PersonaController {
 				.map(PersonaResult::from)
 				.toList()
 		);
+	}
+
+	@PostMapping("/{personaId}/regenerate")
+	public ResponseEntity<PersonaResult> regenerate(@PathVariable Long personaId) {
+		Persona persona = personaService.regenerate(personaId);
+		return ResponseEntity.ok(PersonaResult.from(persona));
+	}
+
+	@PutMapping("/{personaId}")
+	public ResponseEntity<PersonaResult> update(
+		@PathVariable Long personaId,
+		@RequestBody UpdatePersonaCommand command
+	) {
+		if (command == null || !StringUtils.hasText(command.systemPrompt())) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "systemPrompt must not be blank");
+		}
+
+		Persona persona = personaService.update(personaId, command.systemPrompt());
+		return ResponseEntity.ok(PersonaResult.from(persona));
 	}
 
 	@DeleteMapping("/{personaId}")

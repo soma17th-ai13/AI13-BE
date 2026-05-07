@@ -60,6 +60,10 @@ public class Persona extends BaseTimeEntity {
 	@Column(nullable = false)
 	private boolean enabled;
 
+	public void updateSystemPrompt(String systemPrompt) {
+		this.systemPrompt = systemPrompt;
+	}
+
 	@Builder
 	private Persona(String domainName, String name, String systemPrompt, boolean builtIn, boolean enabled) {
 		this.domainName = domainName;
