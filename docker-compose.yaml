@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: ai13-db
+    environment:
+      POSTGRES_DB: ai13
+      POSTGRES_USER: ai13
+      POSTGRES_PASSWORD: ai13
+    ports:
+      - "5433:5432"
+    volumes:
+      - ai13-db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  ai13-db-data:

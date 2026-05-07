@@ -1,3 +1,8 @@
+## 커밋 메시지 규칙
+
+- 형식: `<type>: <한국어 요약>`
+- type 종류: `feat`, `fix`, `docs`, `refactor`, `test`, `chore` 등
+
 ## 프로젝트 기획
 
 - 전체 기획은 `docs/plan.md`를 기준으로 한다.
