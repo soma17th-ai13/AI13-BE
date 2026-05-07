@@ -1,4 +1,4 @@
-package com.soma.ai13be.domain.persona.service;
+package com.soma.ai13be.persona.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

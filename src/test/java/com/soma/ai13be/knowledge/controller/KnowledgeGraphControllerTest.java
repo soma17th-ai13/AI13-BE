@@ -1,4 +1,4 @@
-package com.soma.ai13be.controller;
+package com.soma.ai13be.knowledge.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -17,7 +17,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.soma.ai13be.common.exception.GlobalExceptionHandler;
-import com.soma.ai13be.knowledge.controller.KnowledgeGraphController;
 import com.soma.ai13be.knowledge.dto.request.CreateKnowledgeEdgeCommand;
 import com.soma.ai13be.knowledge.dto.request.CreateKnowledgeNodeCommand;
 import com.soma.ai13be.knowledge.dto.response.KnowledgeEdgeResult;

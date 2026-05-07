@@ -1,4 +1,4 @@
-package com.soma.ai13be.domain.persona.prompt;
+package com.soma.ai13be.persona.prompt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

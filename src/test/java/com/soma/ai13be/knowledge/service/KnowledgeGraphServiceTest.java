@@ -1,4 +1,4 @@
-package com.soma.ai13be.domain.knowledge.service;
+package com.soma.ai13be.knowledge.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -21,7 +21,6 @@ import com.soma.ai13be.knowledge.entity.KnowledgeNode;
 import com.soma.ai13be.knowledge.exception.KnowledgeNodeNotFoundException;
 import com.soma.ai13be.knowledge.repository.KnowledgeEdgeRepository;
 import com.soma.ai13be.knowledge.repository.KnowledgeNodeRepository;
-import com.soma.ai13be.knowledge.service.KnowledgeGraphService;
 
 class KnowledgeGraphServiceTest {
 
