@@ -13,12 +13,13 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import com.soma.ai13be.common.exception.CustomException;
+import com.soma.ai13be.common.exception.ErrorCode;
 import com.soma.ai13be.knowledge.dto.request.CreateKnowledgeEdgeCommand;
 import com.soma.ai13be.knowledge.dto.request.CreateKnowledgeNodeCommand;
 import com.soma.ai13be.knowledge.dto.response.KnowledgeGraphResult;
 import com.soma.ai13be.knowledge.entity.KnowledgeEdge;
 import com.soma.ai13be.knowledge.entity.KnowledgeNode;
-import com.soma.ai13be.knowledge.exception.KnowledgeNodeNotFoundException;
 import com.soma.ai13be.knowledge.repository.KnowledgeEdgeRepository;
 import com.soma.ai13be.knowledge.repository.KnowledgeNodeRepository;
 
@@ -55,7 +56,8 @@ class KnowledgeGraphServiceTest {
 			"건강",
 			"USER_INPUT"
 		)))
-			.isInstanceOf(IllegalArgumentException.class)
+			.isInstanceOf(CustomException.class)
+			.hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_REQUEST)
 			.hasMessageContaining("title");
 	}
 
@@ -95,7 +97,8 @@ class KnowledgeGraphServiceTest {
 			BigDecimal.ONE,
 			null
 		)))
-			.isInstanceOf(KnowledgeNodeNotFoundException.class)
+			.isInstanceOf(CustomException.class)
+			.hasFieldOrPropertyWithValue("errorCode", ErrorCode.KNOWLEDGE_NODE_NOT_FOUND)
 			.hasMessageContaining("2");
 	}
 

@@ -7,9 +7,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.soma.ai13be.common.dto.ErrorResponse;
+import com.soma.ai13be.common.exception.CustomException;
+import com.soma.ai13be.common.exception.ErrorCode;
 import com.soma.ai13be.knowledge.dto.request.ExtractKnowledgeCommand;
 import com.soma.ai13be.knowledge.dto.response.KnowledgeExtractionResult;
 import com.soma.ai13be.knowledge.service.KnowledgeExtractionService;
@@ -45,7 +46,7 @@ public class KnowledgeExtractionController {
 	@PostMapping("/extractions")
 	public ResponseEntity<KnowledgeExtractionResult> extractKnowledge(@RequestBody ExtractKnowledgeCommand command) {
 		if (command == null || !StringUtils.hasText(command.text())) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "text must not be blank");
+			throw new CustomException(ErrorCode.INVALID_REQUEST, "text must not be blank");
 		}
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.body(knowledgeExtractionService.extractAndStore(command));

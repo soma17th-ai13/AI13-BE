@@ -13,6 +13,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.soma.ai13be.common.client.SolarApiClient;
 import com.soma.ai13be.common.client.dto.SolarChatMessage;
 import com.soma.ai13be.common.client.dto.SolarChatRequest;
+import com.soma.ai13be.common.exception.CustomException;
+import com.soma.ai13be.common.exception.ErrorCode;
 import com.soma.ai13be.knowledge.dto.request.CreateKnowledgeEdgeCommand;
 import com.soma.ai13be.knowledge.dto.request.CreateKnowledgeNodeCommand;
 import com.soma.ai13be.knowledge.dto.request.ExtractKnowledgeCommand;
@@ -21,7 +23,6 @@ import com.soma.ai13be.knowledge.dto.response.KnowledgeExtractionResult;
 import com.soma.ai13be.knowledge.dto.response.KnowledgeNodeResult;
 import com.soma.ai13be.knowledge.entity.KnowledgeEdge;
 import com.soma.ai13be.knowledge.entity.KnowledgeNode;
-import com.soma.ai13be.knowledge.exception.KnowledgeExtractionException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -89,7 +90,7 @@ public class KnowledgeExtractionService {
 
 	private List<KnowledgeNode> saveNodes(List<ExtractedNode> nodes) {
 		if (nodes == null || nodes.isEmpty()) {
-			throw new KnowledgeExtractionException("No knowledge nodes were extracted.");
+			throw new CustomException(ErrorCode.KNOWLEDGE_EXTRACTION_FAILED, "No knowledge nodes were extracted.");
 		}
 
 		List<KnowledgeNode> savedNodes = new ArrayList<>();
@@ -108,7 +109,7 @@ public class KnowledgeExtractionService {
 		}
 
 		if (savedNodes.isEmpty()) {
-			throw new KnowledgeExtractionException("No valid knowledge nodes were extracted.");
+			throw new CustomException(ErrorCode.KNOWLEDGE_EXTRACTION_FAILED, "No valid knowledge nodes were extracted.");
 		}
 		return savedNodes;
 	}
@@ -150,12 +151,19 @@ public class KnowledgeExtractionService {
 
 	private ExtractedKnowledge parseExtraction(String content) {
 		if (!StringUtils.hasText(content)) {
-			throw new KnowledgeExtractionException("Solar API returned an empty extraction result.");
+			throw new CustomException(
+				ErrorCode.KNOWLEDGE_EXTRACTION_FAILED,
+				"Solar API returned an empty extraction result."
+			);
 		}
 		try {
 			return objectMapper.readValue(stripJsonFence(content), ExtractedKnowledge.class);
 		} catch (Exception exception) {
-			throw new KnowledgeExtractionException("Failed to parse knowledge extraction result.", exception);
+			throw new CustomException(
+				ErrorCode.KNOWLEDGE_EXTRACTION_FAILED,
+				"Failed to parse knowledge extraction result.",
+				exception
+			);
 		}
 	}
 
@@ -171,7 +179,7 @@ public class KnowledgeExtractionService {
 
 	private void validateCommand(ExtractKnowledgeCommand command) {
 		if (command == null || !StringUtils.hasText(command.text())) {
-			throw new IllegalArgumentException("text must not be blank");
+			throw new CustomException(ErrorCode.INVALID_REQUEST, "text must not be blank");
 		}
 	}
 

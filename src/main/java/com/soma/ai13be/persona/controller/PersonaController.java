@@ -5,17 +5,18 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.soma.ai13be.common.dto.ErrorResponse;
+import com.soma.ai13be.common.exception.CustomException;
+import com.soma.ai13be.common.exception.ErrorCode;
 import com.soma.ai13be.persona.dto.request.CreatePersonaCommand;
 import com.soma.ai13be.persona.dto.request.UpdatePersonaCommand;
 import com.soma.ai13be.persona.dto.response.PersonaResult;
@@ -48,12 +49,16 @@ public class PersonaController {
 		@ApiResponse(responseCode = "201", description = "페르소나 생성 성공",
 			content = @Content(schema = @Schema(implementation = PersonaResult.class))),
 		@ApiResponse(responseCode = "400", description = "domainName이 null 또는 공백",
+			content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+		@ApiResponse(responseCode = "409", description = "동일한 domainName의 페르소나가 이미 존재",
+			content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+		@ApiResponse(responseCode = "502", description = "Solar API 프롬프트 생성 실패",
 			content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	@PostMapping
 	public ResponseEntity<PersonaResult> create(@RequestBody CreatePersonaCommand command) {
 		if (command == null || !StringUtils.hasText(command.domainName())) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "domainName must not be blank");
+			throw new CustomException(ErrorCode.INVALID_REQUEST, "domainName must not be blank");
 		}
 
 		Persona persona = personaService.create(command.domainName());
@@ -86,6 +91,8 @@ public class PersonaController {
 		@ApiResponse(responseCode = "200", description = "재생성 성공",
 			content = @Content(schema = @Schema(implementation = PersonaResult.class))),
 		@ApiResponse(responseCode = "404", description = "페르소나를 찾을 수 없음",
+			content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+		@ApiResponse(responseCode = "502", description = "Solar API 프롬프트 생성 실패",
 			content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	@PostMapping("/{personaId}/regenerate")
@@ -116,7 +123,7 @@ public class PersonaController {
 		@RequestBody UpdatePersonaCommand command
 	) {
 		if (command == null || !StringUtils.hasText(command.systemPrompt())) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "systemPrompt must not be blank");
+			throw new CustomException(ErrorCode.INVALID_REQUEST, "systemPrompt must not be blank");
 		}
 
 		Persona persona = personaService.update(personaId, command.systemPrompt());
@@ -130,6 +137,8 @@ public class PersonaController {
 	@ApiResponses({
 		@ApiResponse(responseCode = "204", description = "삭제 성공"),
 		@ApiResponse(responseCode = "404", description = "페르소나를 찾을 수 없음",
+			content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+		@ApiResponse(responseCode = "409", description = "기본 내장 페르소나는 삭제할 수 없음",
 			content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	@DeleteMapping("/{personaId}")

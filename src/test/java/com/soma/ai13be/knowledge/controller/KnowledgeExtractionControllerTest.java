@@ -59,6 +59,7 @@ class KnowledgeExtractionControllerTest {
 					}
 					"""))
 			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("INVALID_REQUEST"))
 			.andExpect(jsonPath("$.message").value("text must not be blank"));
 	}
 

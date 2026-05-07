@@ -17,13 +17,10 @@ import com.soma.ai13be.common.client.SolarApiClient;
 import com.soma.ai13be.common.client.dto.SolarChatMessage;
 import com.soma.ai13be.common.client.dto.SolarChatRequest;
 import com.soma.ai13be.common.client.dto.SolarChatResponse;
+import com.soma.ai13be.common.exception.CustomException;
+import com.soma.ai13be.common.exception.ErrorCode;
 import com.soma.ai13be.persona.entity.Persona;
-import com.soma.ai13be.persona.exception.BuiltInPersonaDeletionException;
-import com.soma.ai13be.persona.exception.DuplicatePersonaException;
-import com.soma.ai13be.persona.exception.PersonaNotFoundException;
-import com.soma.ai13be.persona.exception.PersonaPromptGenerationException;
 import com.soma.ai13be.persona.repository.PersonaRepository;
-import com.soma.ai13be.persona.service.PersonaService;
 
 class PersonaServiceTest {
 
@@ -61,7 +58,8 @@ class PersonaServiceTest {
 	@Test
 	void rejectsBlankDomainName() {
 		assertThatThrownBy(() -> service.create(" "))
-			.isInstanceOf(IllegalArgumentException.class)
+			.isInstanceOf(CustomException.class)
+			.hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_REQUEST)
 			.hasMessageContaining("domainName");
 	}
 
@@ -70,7 +68,8 @@ class PersonaServiceTest {
 		when(personaRepository.existsByDomainName("health")).thenReturn(true);
 
 		assertThatThrownBy(() -> service.create("health"))
-			.isInstanceOf(DuplicatePersonaException.class)
+			.isInstanceOf(CustomException.class)
+			.hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_PERSONA)
 			.hasMessageContaining("health");
 	}
 
@@ -81,7 +80,8 @@ class PersonaServiceTest {
 			.thenReturn(emptyResponse());
 
 		assertThatThrownBy(() -> service.create("health"))
-			.isInstanceOf(PersonaPromptGenerationException.class)
+			.isInstanceOf(CustomException.class)
+			.hasFieldOrPropertyWithValue("errorCode", ErrorCode.PERSONA_PROMPT_GENERATION_FAILED)
 			.hasMessageContaining("health");
 	}
 
@@ -100,7 +100,8 @@ class PersonaServiceTest {
 		when(personaRepository.findById(1L)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.delete(1L))
-			.isInstanceOf(PersonaNotFoundException.class)
+			.isInstanceOf(CustomException.class)
+			.hasFieldOrPropertyWithValue("errorCode", ErrorCode.PERSONA_NOT_FOUND)
 			.hasMessageContaining("1");
 	}
 
@@ -110,7 +111,8 @@ class PersonaServiceTest {
 		when(personaRepository.findById(1L)).thenReturn(Optional.of(persona));
 
 		assertThatThrownBy(() -> service.delete(1L))
-			.isInstanceOf(BuiltInPersonaDeletionException.class)
+			.isInstanceOf(CustomException.class)
+			.hasFieldOrPropertyWithValue("errorCode", ErrorCode.BUILT_IN_PERSONA_DELETION)
 			.hasMessageContaining("1");
 		verify(personaRepository, never()).delete(any(Persona.class));
 	}
@@ -135,7 +137,8 @@ class PersonaServiceTest {
 		when(personaRepository.findById(99L)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.regenerate(99L))
-			.isInstanceOf(PersonaNotFoundException.class)
+			.isInstanceOf(CustomException.class)
+			.hasFieldOrPropertyWithValue("errorCode", ErrorCode.PERSONA_NOT_FOUND)
 			.hasMessageContaining("99");
 	}
 
@@ -147,7 +150,8 @@ class PersonaServiceTest {
 			.thenReturn(emptyResponse());
 
 		assertThatThrownBy(() -> service.regenerate(1L))
-			.isInstanceOf(PersonaPromptGenerationException.class)
+			.isInstanceOf(CustomException.class)
+			.hasFieldOrPropertyWithValue("errorCode", ErrorCode.PERSONA_PROMPT_GENERATION_FAILED)
 			.hasMessageContaining("health");
 	}
 
@@ -164,7 +168,8 @@ class PersonaServiceTest {
 	@Test
 	void rejectsUpdateWithBlankSystemPrompt() {
 		assertThatThrownBy(() -> service.update(1L, " "))
-			.isInstanceOf(IllegalArgumentException.class)
+			.isInstanceOf(CustomException.class)
+			.hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_REQUEST)
 			.hasMessageContaining("systemPrompt");
 	}
 
@@ -173,7 +178,8 @@ class PersonaServiceTest {
 		when(personaRepository.findById(99L)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.update(99L, "New prompt"))
-			.isInstanceOf(PersonaNotFoundException.class)
+			.isInstanceOf(CustomException.class)
+			.hasFieldOrPropertyWithValue("errorCode", ErrorCode.PERSONA_NOT_FOUND)
 			.hasMessageContaining("99");
 	}
 

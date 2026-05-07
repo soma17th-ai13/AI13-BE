@@ -13,12 +13,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.soma.ai13be.common.exception.CustomException;
+import com.soma.ai13be.common.exception.ErrorCode;
 import com.soma.ai13be.common.exception.GlobalExceptionHandler;
 import com.soma.ai13be.knowledge.dto.request.CreateKnowledgeEdgeCommand;
 import com.soma.ai13be.knowledge.dto.request.CreateKnowledgeNodeCommand;
 import com.soma.ai13be.knowledge.dto.response.KnowledgeEdgeResult;
 import com.soma.ai13be.knowledge.dto.response.KnowledgeNodeResult;
-import com.soma.ai13be.knowledge.exception.KnowledgeNodeNotFoundException;
 import com.soma.ai13be.knowledge.service.KnowledgeGraphService;
 
 class InternalKnowledgeGraphControllerTest {
@@ -74,7 +75,7 @@ class InternalKnowledgeGraphControllerTest {
 	@Test
 	void returnsNotFoundWhenCreatingInternalEdgeForUnknownNode() throws Exception {
 		when(knowledgeGraphService.createEdgeResult(any(CreateKnowledgeEdgeCommand.class)))
-			.thenThrow(new KnowledgeNodeNotFoundException(2L));
+			.thenThrow(new CustomException(ErrorCode.KNOWLEDGE_NODE_NOT_FOUND, "Knowledge node not found: 2"));
 
 		mockMvc.perform(post("/internal/knowledge/edges")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -86,6 +87,7 @@ class InternalKnowledgeGraphControllerTest {
 					}
 					"""))
 			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.code").value("KNOWLEDGE_NODE_NOT_FOUND"))
 			.andExpect(jsonPath("$.message").value("Knowledge node not found: 2"));
 	}
 

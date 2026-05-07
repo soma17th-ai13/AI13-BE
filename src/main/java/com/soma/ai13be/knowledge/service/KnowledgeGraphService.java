@@ -15,7 +15,8 @@ import com.soma.ai13be.knowledge.dto.response.KnowledgeGraphResult;
 import com.soma.ai13be.knowledge.dto.response.KnowledgeNodeResult;
 import com.soma.ai13be.knowledge.entity.KnowledgeEdge;
 import com.soma.ai13be.knowledge.entity.KnowledgeNode;
-import com.soma.ai13be.knowledge.exception.KnowledgeNodeNotFoundException;
+import com.soma.ai13be.common.exception.CustomException;
+import com.soma.ai13be.common.exception.ErrorCode;
 import com.soma.ai13be.knowledge.repository.KnowledgeEdgeRepository;
 import com.soma.ai13be.knowledge.repository.KnowledgeNodeRepository;
 
@@ -66,7 +67,7 @@ public class KnowledgeGraphService {
 	@Transactional(readOnly = true)
 	public KnowledgeNode findNode(Long nodeId) {
 		return nodeRepository.findById(requiredId(nodeId, "nodeId"))
-			.orElseThrow(() -> new KnowledgeNodeNotFoundException(nodeId));
+			.orElseThrow(() -> new CustomException(ErrorCode.KNOWLEDGE_NODE_NOT_FOUND, "Knowledge node not found: " + nodeId));
 	}
 
 	@Transactional(readOnly = true)
@@ -120,7 +121,7 @@ public class KnowledgeGraphService {
 
 	private void validateCreateNodeCommand(CreateKnowledgeNodeCommand command) {
 		if (command == null) {
-			throw new IllegalArgumentException("request body is required");
+			throw new CustomException(ErrorCode.INVALID_REQUEST, "request body is required");
 		}
 		requireText(command.title(), "title");
 		requireText(command.content(), "content");
@@ -130,7 +131,7 @@ public class KnowledgeGraphService {
 
 	private void validateCreateEdgeCommand(CreateKnowledgeEdgeCommand command) {
 		if (command == null) {
-			throw new IllegalArgumentException("request body is required");
+			throw new CustomException(ErrorCode.INVALID_REQUEST, "request body is required");
 		}
 		requiredId(command.sourceNodeId(), "sourceNodeId");
 		requiredId(command.targetNodeId(), "targetNodeId");
@@ -139,13 +140,13 @@ public class KnowledgeGraphService {
 
 	private void requireText(String value, String fieldName) {
 		if (!StringUtils.hasText(value)) {
-			throw new IllegalArgumentException(fieldName + " must not be blank");
+			throw new CustomException(ErrorCode.INVALID_REQUEST, fieldName + " must not be blank");
 		}
 	}
 
 	private Long requiredId(Long value, String fieldName) {
 		if (value == null) {
-			throw new IllegalArgumentException(fieldName + " must not be null");
+			throw new CustomException(ErrorCode.INVALID_REQUEST, fieldName + " must not be null");
 		}
 		return value;
 	}

@@ -10,11 +10,9 @@ import com.soma.ai13be.common.client.SolarApiClient;
 import com.soma.ai13be.common.client.dto.SolarChatMessage;
 import com.soma.ai13be.common.client.dto.SolarChatRequest;
 import com.soma.ai13be.common.client.dto.SolarChatResponse;
+import com.soma.ai13be.common.exception.CustomException;
+import com.soma.ai13be.common.exception.ErrorCode;
 import com.soma.ai13be.persona.entity.Persona;
-import com.soma.ai13be.persona.exception.BuiltInPersonaDeletionException;
-import com.soma.ai13be.persona.exception.DuplicatePersonaException;
-import com.soma.ai13be.persona.exception.PersonaNotFoundException;
-import com.soma.ai13be.persona.exception.PersonaPromptGenerationException;
 import com.soma.ai13be.persona.prompt.PersonaPromptTemplates;
 import com.soma.ai13be.persona.repository.PersonaRepository;
 
@@ -42,7 +40,10 @@ public class PersonaService {
 
 		// 동일 도메인 페르소나가 중복 생성되지 않도록 방지
 		if (personaRepository.existsByDomainName(normalizedDomainName)) {
-			throw new DuplicatePersonaException(normalizedDomainName);
+			throw new CustomException(
+				ErrorCode.DUPLICATE_PERSONA,
+				"Persona already exists for domain: " + normalizedDomainName
+			);
 		}
 
 		// 사용자가 입력한 도메인명만으로 토론용 system prompt를 생성해 Persona에 저장
@@ -66,7 +67,7 @@ public class PersonaService {
 	@Transactional
 	public Persona regenerate(Long personaId) {
 		Persona persona = personaRepository.findById(personaId)
-			.orElseThrow(() -> new PersonaNotFoundException(personaId));
+			.orElseThrow(() -> personaNotFound(personaId));
 
 		String newSystemPrompt = generateSystemPrompt(persona.getDomainName());
 		persona.updateSystemPrompt(newSystemPrompt);
@@ -76,11 +77,11 @@ public class PersonaService {
 	@Transactional
 	public Persona update(Long personaId, String systemPrompt) {
 		if (!StringUtils.hasText(systemPrompt)) {
-			throw new IllegalArgumentException("systemPrompt must not be blank");
+			throw new CustomException(ErrorCode.INVALID_REQUEST, "systemPrompt must not be blank");
 		}
 
 		Persona persona = personaRepository.findById(personaId)
-			.orElseThrow(() -> new PersonaNotFoundException(personaId));
+			.orElseThrow(() -> personaNotFound(personaId));
 
 		persona.updateSystemPrompt(systemPrompt.strip());
 		return persona;
@@ -89,11 +90,11 @@ public class PersonaService {
 	@Transactional
 	public void delete(Long personaId) {
 		Persona persona = personaRepository.findById(personaId)
-			.orElseThrow(() -> new PersonaNotFoundException(personaId));
+			.orElseThrow(() -> personaNotFound(personaId));
 
 		// 초기 기본 페르소나일 경우
 		if (persona.isBuiltIn()) {
-			throw new BuiltInPersonaDeletionException(personaId);
+			throw new CustomException(ErrorCode.BUILT_IN_PERSONA_DELETION, "Built-in persona cannot be deleted: " + personaId);
 		}
 
 		personaRepository.delete(persona);
@@ -123,7 +124,10 @@ public class PersonaService {
 
 		// 응답이 비어 있거나 유효하지 않은 경우, 불완전한 Persona가 DB에 저장되지 않도록 예외를 발생
 		if (!StringUtils.hasText(systemPrompt)) {
-			throw new PersonaPromptGenerationException(domainName);
+			throw new CustomException(
+				ErrorCode.PERSONA_PROMPT_GENERATION_FAILED,
+				"Failed to generate persona prompt for domain: " + domainName
+			);
 		}
 		return systemPrompt.strip();
 	}
@@ -137,8 +141,12 @@ public class PersonaService {
 	 */
 	private String normalizeDomainName(String domainName) {
 		if (!StringUtils.hasText(domainName)) {
-			throw new IllegalArgumentException("domainName must not be blank");
+			throw new CustomException(ErrorCode.INVALID_REQUEST, "domainName must not be blank");
 		}
 		return domainName.strip();
+	}
+
+	private CustomException personaNotFound(Long personaId) {
+		return new CustomException(ErrorCode.PERSONA_NOT_FOUND, "Persona not found: " + personaId);
 	}
 }

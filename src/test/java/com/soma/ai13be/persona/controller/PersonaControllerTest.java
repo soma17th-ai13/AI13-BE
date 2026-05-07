@@ -18,12 +18,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.soma.ai13be.common.exception.CustomException;
+import com.soma.ai13be.common.exception.ErrorCode;
 import com.soma.ai13be.common.exception.GlobalExceptionHandler;
-import com.soma.ai13be.persona.exception.BuiltInPersonaDeletionException;
 import com.soma.ai13be.persona.entity.Persona;
-import com.soma.ai13be.persona.exception.DuplicatePersonaException;
-import com.soma.ai13be.persona.exception.PersonaNotFoundException;
-import com.soma.ai13be.persona.exception.PersonaPromptGenerationException;
 import com.soma.ai13be.persona.service.PersonaService;
 
 class PersonaControllerTest {
@@ -61,14 +59,19 @@ class PersonaControllerTest {
 					  "domainName": " "
 					}
 					"""))
-			.andExpect(status().isBadRequest());
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("INVALID_REQUEST"))
+			.andExpect(jsonPath("$.message").value("domainName must not be blank"));
 
 		verify(personaService, never()).create(anyString());
 	}
 
 	@Test
 	void returnsConflictWhenPersonaAlreadyExists() throws Exception {
-		when(personaService.create("health")).thenThrow(new DuplicatePersonaException("health"));
+		when(personaService.create("health")).thenThrow(customException(
+			ErrorCode.DUPLICATE_PERSONA,
+			"Persona already exists for domain: health"
+		));
 
 		mockMvc.perform(post("/api/personas")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -78,12 +81,16 @@ class PersonaControllerTest {
 					}
 					"""))
 			.andExpect(status().isConflict())
+			.andExpect(jsonPath("$.code").value("DUPLICATE_PERSONA"))
 			.andExpect(jsonPath("$.message").value("Persona already exists for domain: health"));
 	}
 
 	@Test
 	void returnsBadGatewayWhenPromptGenerationFails() throws Exception {
-		when(personaService.create("health")).thenThrow(new PersonaPromptGenerationException("health"));
+		when(personaService.create("health")).thenThrow(customException(
+			ErrorCode.PERSONA_PROMPT_GENERATION_FAILED,
+			"Failed to generate persona prompt for domain: health"
+		));
 
 		mockMvc.perform(post("/api/personas")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -93,6 +100,7 @@ class PersonaControllerTest {
 					}
 					"""))
 			.andExpect(status().isBadGateway())
+			.andExpect(jsonPath("$.code").value("PERSONA_PROMPT_GENERATION_FAILED"))
 			.andExpect(jsonPath("$.message").value("Failed to generate persona prompt for domain: health"));
 	}
 
@@ -116,19 +124,23 @@ class PersonaControllerTest {
 
 	@Test
 	void returnsNotFoundWhenDeletingUnknownPersona() throws Exception {
-		doThrow(new PersonaNotFoundException(1L)).when(personaService).delete(1L);
+		doThrow(customException(ErrorCode.PERSONA_NOT_FOUND, "Persona not found: 1"))
+			.when(personaService).delete(1L);
 
 		mockMvc.perform(delete("/api/personas/{personaId}", 1L))
 			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.code").value("PERSONA_NOT_FOUND"))
 			.andExpect(jsonPath("$.message").value("Persona not found: 1"));
 	}
 
 	@Test
 	void returnsConflictWhenDeletingBuiltInPersona() throws Exception {
-		doThrow(new BuiltInPersonaDeletionException(1L)).when(personaService).delete(1L);
+		doThrow(customException(ErrorCode.BUILT_IN_PERSONA_DELETION, "Built-in persona cannot be deleted: 1"))
+			.when(personaService).delete(1L);
 
 		mockMvc.perform(delete("/api/personas/{personaId}", 1L))
 			.andExpect(status().isConflict())
+			.andExpect(jsonPath("$.code").value("BUILT_IN_PERSONA_DELETION"))
 			.andExpect(jsonPath("$.message").value("Built-in persona cannot be deleted: 1"));
 	}
 
@@ -140,5 +152,9 @@ class PersonaControllerTest {
 			.builtIn(false)
 			.enabled(true)
 			.build();
+	}
+
+	private CustomException customException(ErrorCode errorCode, String message) {
+		return new CustomException(errorCode, message);
 	}
 }

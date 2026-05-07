@@ -7,8 +7,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
+import com.soma.ai13be.common.exception.CustomException;
+import com.soma.ai13be.common.exception.ErrorCode;
 import com.soma.ai13be.knowledge.dto.request.CreateKnowledgeEdgeCommand;
 import com.soma.ai13be.knowledge.dto.request.CreateKnowledgeNodeCommand;
 import com.soma.ai13be.knowledge.dto.response.KnowledgeEdgeResult;
@@ -42,28 +43,28 @@ public class InternalKnowledgeGraphController {
 
 	private void validateCreateNodeCommand(CreateKnowledgeNodeCommand command) {
 		if (command == null || !StringUtils.hasText(command.title())) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "title must not be blank");
+			throw new CustomException(ErrorCode.INVALID_REQUEST, "title must not be blank");
 		}
 		if (!StringUtils.hasText(command.content())) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "content must not be blank");
+			throw new CustomException(ErrorCode.INVALID_REQUEST, "content must not be blank");
 		}
 		if (!StringUtils.hasText(command.domainName())) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "domainName must not be blank");
+			throw new CustomException(ErrorCode.INVALID_REQUEST, "domainName must not be blank");
 		}
 		if (!StringUtils.hasText(command.nodeType())) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "nodeType must not be blank");
+			throw new CustomException(ErrorCode.INVALID_REQUEST, "nodeType must not be blank");
 		}
 	}
 
 	private void validateCreateEdgeCommand(CreateKnowledgeEdgeCommand command) {
 		if (command == null || command.sourceNodeId() == null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sourceNodeId must not be null");
+			throw new CustomException(ErrorCode.INVALID_REQUEST, "sourceNodeId must not be null");
 		}
 		if (command.targetNodeId() == null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "targetNodeId must not be null");
+			throw new CustomException(ErrorCode.INVALID_REQUEST, "targetNodeId must not be null");
 		}
 		if (!StringUtils.hasText(command.relationType())) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "relationType must not be blank");
+			throw new CustomException(ErrorCode.INVALID_REQUEST, "relationType must not be blank");
 		}
 	}
 }

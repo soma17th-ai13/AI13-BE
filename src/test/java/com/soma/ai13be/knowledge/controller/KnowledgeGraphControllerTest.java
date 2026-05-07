@@ -19,7 +19,6 @@ import com.soma.ai13be.common.exception.GlobalExceptionHandler;
 import com.soma.ai13be.knowledge.dto.response.KnowledgeEdgeResult;
 import com.soma.ai13be.knowledge.dto.response.KnowledgeGraphResult;
 import com.soma.ai13be.knowledge.dto.response.KnowledgeNodeResult;
-import com.soma.ai13be.knowledge.exception.KnowledgeNodeNotFoundException;
 import com.soma.ai13be.knowledge.service.KnowledgeGraphService;
 
 class KnowledgeGraphControllerTest {
