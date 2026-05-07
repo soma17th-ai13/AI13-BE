@@ -15,11 +15,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class KnowledgeContextBuilder {
 
+	private static final int MAX_NODES = 15;
+
 	private final KnowledgeNodeRepository nodeRepository;
 
 	public Optional<SolarChatMessage> buildContextMessage(String domainName) {
 		List<KnowledgeNode> nodes = nodeRepository
-			.findTop15ByDomainNameOrderByCreatedAtDesc(domainName);
+			.findByDomainNameOrderByCreatedAtDesc(domainName)
+			.stream()
+			.limit(MAX_NODES)
+			.toList();
 
 		if (nodes.isEmpty()) {
 			return Optional.empty();

@@ -11,6 +11,4 @@ public interface KnowledgeNodeRepository extends JpaRepository<KnowledgeNode, Lo
 	List<KnowledgeNode> findAllByOrderByCreatedAtDesc();
 
 	List<KnowledgeNode> findByDomainNameOrderByCreatedAtDesc(String domainName);
-
-	List<KnowledgeNode> findTop15ByDomainNameOrderByCreatedAtDesc(String domainName);
 }
