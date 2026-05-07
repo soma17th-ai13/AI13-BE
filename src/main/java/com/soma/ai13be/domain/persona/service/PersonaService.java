@@ -11,7 +11,9 @@ import com.soma.ai13be.common.client.dto.SolarChatMessage;
 import com.soma.ai13be.common.client.dto.SolarChatRequest;
 import com.soma.ai13be.common.client.dto.SolarChatResponse;
 import com.soma.ai13be.domain.persona.entity.Persona;
+import com.soma.ai13be.domain.persona.exception.BuiltInPersonaDeletionException;
 import com.soma.ai13be.domain.persona.exception.DuplicatePersonaException;
+import com.soma.ai13be.domain.persona.exception.PersonaNotFoundException;
 import com.soma.ai13be.domain.persona.exception.PersonaPromptGenerationException;
 import com.soma.ai13be.domain.persona.prompt.PersonaPromptTemplates;
 import com.soma.ai13be.domain.persona.repository.PersonaRepository;
@@ -59,6 +61,19 @@ public class PersonaService {
 	@Transactional(readOnly = true)
 	public List<Persona> findAll() {
 		return personaRepository.findAll();
+	}
+
+	@Transactional
+	public void delete(Long personaId) {
+		Persona persona = personaRepository.findById(personaId)
+			.orElseThrow(() -> new PersonaNotFoundException(personaId));
+
+		// 초기 기본 페르소나일 경우
+		if (persona.isBuiltIn()) {
+			throw new BuiltInPersonaDeletionException(personaId);
+		}
+
+		personaRepository.delete(persona);
 	}
 
 	/**
