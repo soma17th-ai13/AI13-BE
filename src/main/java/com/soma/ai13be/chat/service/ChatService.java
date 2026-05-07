@@ -17,6 +17,7 @@ import com.soma.ai13be.common.client.dto.SolarChatMessage;
 import com.soma.ai13be.common.client.dto.SolarChatRequest;
 import com.soma.ai13be.common.exception.CustomException;
 import com.soma.ai13be.common.exception.ErrorCode;
+import com.soma.ai13be.knowledge.service.KnowledgeContextBuilder;
 import com.soma.ai13be.persona.entity.Persona;
 import com.soma.ai13be.persona.repository.PersonaRepository;
 
@@ -33,6 +34,7 @@ public class ChatService {
 	private final ChatMessageRepository messageRepository;
 	private final PersonaRepository personaRepository;
 	private final SolarApiClient solarApiClient;
+	private final KnowledgeContextBuilder knowledgeContextBuilder;
 
 	@Transactional
 	public ChatSession createSession(Long personaId, String title) {
@@ -89,6 +91,11 @@ public class ChatService {
 		Persona persona = session.getPersona();
 		if (persona != null && StringUtils.hasText(persona.getSystemPrompt())) {
 			messages.add(SolarChatMessage.system(persona.getSystemPrompt()));
+		}
+
+		if (persona != null && StringUtils.hasText(persona.getDomainName())) {
+			knowledgeContextBuilder.buildContextMessage(persona.getDomainName())
+				.ifPresent(messages::add);
 		}
 
 		for (ChatMessage msg : history) {
