@@ -11,10 +11,17 @@ services:
     volumes:
       - ai13-db-data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ai13 -d ai13"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
   app:
     build: .
+    env_file:
+      - .env
     container_name: ai13-app
     profiles: ["app"]
     ports:
@@ -23,9 +30,10 @@ services:
       DB_URL: jdbc:postgresql://db:5432/ai13
       DB_USERNAME: ai13
       DB_PASSWORD: ai13
-      UPSTAGE_API_KEY: ${UPSTAGE_API_KEY}
+      UPSTAGE_API_KEY: ${UPSTAGE_API_KEY:?UPSTAGE_API_KEY is required}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:

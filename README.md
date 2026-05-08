@@ -69,11 +69,13 @@ docker compose up -d
 
 **2. 서버 실행**
 
+IDE(IntelliJ 등)의 EnvFile 플러그인을 활용하거나, 터미널에서 아래와 같이 실행합니다.
+
 ```bash
-./gradlew bootRun
+export $(grep -v '^#' .env | xargs) && ./gradlew bootRun
 ```
 
-> Spring Boot가 실행될 때 `.env`의 환경변수를 자동으로 읽습니다.
+> 기본 Spring Boot는 `.env`를 자동으로 로드하지 않으므로 위와 같이 직접 주입해야 합니다.
 
 ```bash
 # DB 컨테이너 종료
