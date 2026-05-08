@@ -53,6 +53,21 @@ public class AgentDiscussion extends BaseTimeEntity {
 	@Column
 	private String actionPlan;
 
+	public void markRunning() {
+		this.status = DiscussionStatus.RUNNING;
+	}
+
+	public void markCompleted(String summary, String actionPlan) {
+		this.status = DiscussionStatus.COMPLETED;
+		this.summary = summary;
+		this.actionPlan = actionPlan;
+	}
+
+	public void markFailed(String summary) {
+		this.status = DiscussionStatus.FAILED;
+		this.summary = summary;
+	}
+
 	@Builder
 	private AgentDiscussion(
 		KnowledgeNode triggerNode,
