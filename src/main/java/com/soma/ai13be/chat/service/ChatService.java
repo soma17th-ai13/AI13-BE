@@ -106,7 +106,7 @@ public class ChatService {
 		SolarChatRequest request = new SolarChatRequest(messages, CHAT_TEMPERATURE, CHAT_MAX_TOKENS);
 		String content = solarApiClient.chatCompletion(request).firstContent();
 		if (!StringUtils.hasText(content)) {
-			throw new CustomException(ErrorCode.SOLAR_RESPONSE_EMPTY, "Solar API returned empty content");
+			throw new CustomException(ErrorCode.SOLAR_RESPONSE_EMPTY, "Solar API returned empty response");
 		}
 		return content;
 	}
