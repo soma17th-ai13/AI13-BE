@@ -3,6 +3,7 @@ package com.soma.ai13be.knowledge.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import com.soma.ai13be.common.client.dto.SolarChatMessage;
@@ -21,10 +22,7 @@ public class KnowledgeContextBuilder {
 
 	public Optional<SolarChatMessage> buildContextMessage(String domainName) {
 		List<KnowledgeNode> nodes = nodeRepository
-			.findByDomainNameOrderByCreatedAtDesc(domainName)
-			.stream()
-			.limit(MAX_NODES)
-			.toList();
+			.findByDomainNameOrderByCreatedAtDesc(domainName, PageRequest.of(0, MAX_NODES));
 
 		if (nodes.isEmpty()) {
 			return Optional.empty();
