@@ -43,8 +43,8 @@ public class DiscussionService {
 	private final KnowledgeNodeRepository knowledgeNodeRepository;
 	private final KnowledgeContextBuilder knowledgeContextBuilder;
 	private final SolarApiClient solarApiClient;
+	private final DiscussionFailureRecorder failureRecorder;
 
-	@Transactional
 	public AgentDiscussion createDiscussion(String topic, Long knowledgeNodeId, List<Long> personaIds) {
 		String normalizedTopic = normalizeTopic(topic);
 		KnowledgeNode triggerNode = resolveTriggerNode(knowledgeNodeId);
@@ -55,17 +55,19 @@ public class DiscussionService {
 			.status(DiscussionStatus.REQUESTED)
 			.title(normalizedTopic)
 			.build());
-		discussion.markRunning();
 
 		try {
+			discussion.markRunning();
+			discussionRepository.save(discussion);
 			List<AgentDiscussionMessage> analyses = runAnalysisRound(discussion, normalizedTopic, triggerNode, personas);
 			List<AgentDiscussionMessage> rebuttals = runRebuttalRound(discussion, normalizedTopic, personas, analyses);
 			AgentDiscussionMessage synthesis = runSynthesisRound(discussion, normalizedTopic, analyses, rebuttals);
 			DiscussionSummary summary = parseSynthesis(synthesis.getContent());
 			discussion.markCompleted(summary.summary(), summary.actionPlan());
-			return discussion;
+			return discussionRepository.save(discussion);
 		} catch (RuntimeException ex) {
 			discussion.markFailed(ex.getMessage());
+			failureRecorder.recordFailure(discussion.getId(), ex.getMessage());
 			throw ex;
 		}
 	}

@@ -39,6 +39,7 @@ class DiscussionServiceTest {
 	private final KnowledgeNodeRepository knowledgeNodeRepository = org.mockito.Mockito.mock(KnowledgeNodeRepository.class);
 	private final KnowledgeContextBuilder knowledgeContextBuilder = org.mockito.Mockito.mock(KnowledgeContextBuilder.class);
 	private final SolarApiClient solarApiClient = org.mockito.Mockito.mock(SolarApiClient.class);
+	private final DiscussionFailureRecorder failureRecorder = org.mockito.Mockito.mock(DiscussionFailureRecorder.class);
 
 	private final DiscussionService service = new DiscussionService(
 		discussionRepository,
@@ -46,7 +47,8 @@ class DiscussionServiceTest {
 		personaRepository,
 		knowledgeNodeRepository,
 		knowledgeContextBuilder,
-		solarApiClient
+		solarApiClient,
+		failureRecorder
 	);
 
 	@Test
@@ -153,13 +155,18 @@ class DiscussionServiceTest {
 		Persona health = persona("health");
 		Persona study = persona("study");
 		when(personaRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(health, study));
-		when(discussionRepository.save(any(AgentDiscussion.class))).thenAnswer(inv -> inv.getArgument(0));
+		when(discussionRepository.save(any(AgentDiscussion.class))).thenAnswer(inv -> {
+			AgentDiscussion discussion = inv.getArgument(0);
+			ReflectionTestUtils.setField(discussion, "id", 10L);
+			return discussion;
+		});
 		when(knowledgeContextBuilder.buildContextMessage(any())).thenReturn(Optional.empty());
 		when(solarApiClient.chatCompletion(any(SolarChatRequest.class))).thenReturn(emptyResponse());
 
 		assertThatThrownBy(() -> service.createDiscussion("주제", null, List.of(1L, 2L)))
 			.isInstanceOf(CustomException.class)
 			.hasFieldOrPropertyWithValue("errorCode", ErrorCode.SOLAR_RESPONSE_EMPTY);
+		verify(failureRecorder).recordFailure(10L, "Solar API returned empty response");
 	}
 
 	@Test
