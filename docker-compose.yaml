@@ -13,5 +13,20 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     restart: unless-stopped
 
+  app:
+    build: .
+    container_name: ai13-app
+    profiles: ["app"]
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/ai13
+      DB_USERNAME: ai13
+      DB_PASSWORD: ai13
+      UPSTAGE_API_KEY: ${UPSTAGE_API_KEY}
+    depends_on:
+      - db
+    restart: unless-stopped
+
 volumes:
   ai13-db-data:
