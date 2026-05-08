@@ -5,6 +5,7 @@
 
 ## PR 규칙
 
+- PR 생성 전에 반드시 `/swagger-check` 스킬을 실행하여 Swagger/OpenAPI 명세 누락 여부를 확인한다.
 - PR 제목 형식: `<type>: <한국어 요약>`
 - type 종류는 커밋 메시지 규칙과 동일하게 `feat`, `fix`, `docs`, `refactor`, `test`, `chore` 등을 사용한다.
 - PR을 올릴 때는 `.github/pull_request_template.md` 템플릿을 따른다.
