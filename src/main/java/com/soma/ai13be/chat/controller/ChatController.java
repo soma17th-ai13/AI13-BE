@@ -66,6 +66,8 @@ public class ChatController {
 		@ApiResponse(responseCode = "400", description = "content가 null 또는 공백",
 			content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
 		@ApiResponse(responseCode = "404", description = "채팅 세션을 찾을 수 없음",
+			content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+		@ApiResponse(responseCode = "502", description = "Solar API 응답 오류",
 			content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	@PostMapping("/{sessionId}/messages")
