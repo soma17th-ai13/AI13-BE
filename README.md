@@ -2,6 +2,8 @@
 
 AI 지식 그래프 기반 페르소나 채팅 서버입니다.
 
+프로젝트 기획서: [docs/plan.md](docs/plan.md)
+
 ## API 명세
 
 서버 실행 후 Swagger UI에서 확인하세요.
