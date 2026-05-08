@@ -31,7 +31,8 @@ public record DiscussionResult(
 	@Schema(description = "생성 시각", example = "2026-05-08T09:00:00Z")
 	Instant createdAt,
 
-	@Schema(description = "라운드별 메시지")
+	@Schema(description = "라운드별 메시지",
+		example = "[{\"id\":10,\"personaId\":1,\"personaName\":\"health Persona\",\"round\":\"ANALYSIS\",\"content\":\"건강 관점 분석입니다.\",\"createdAt\":\"2026-05-08T09:00:00Z\"}]")
 	List<DiscussionMessageResult> messages
 ) {
 
