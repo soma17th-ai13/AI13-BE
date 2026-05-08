@@ -12,7 +12,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -45,12 +44,10 @@ public class AgentDiscussion extends BaseTimeEntity {
 	@Column(nullable = false, length = 255)
 	private String title;
 
-	@Lob
-	@Column
+	@Column(columnDefinition = "TEXT")
 	private String summary;
 
-	@Lob
-	@Column
+	@Column(columnDefinition = "TEXT")
 	private String actionPlan;
 
 	public void markRunning() {

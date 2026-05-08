@@ -11,7 +11,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -50,8 +49,7 @@ public class KnowledgeEdge extends BaseTimeEntity {
 	private BigDecimal confidence;
 
 	// 사용자가 그래프 연결의 근거를 확인할 수 있도록 LLM 판단 근거를 보관한다.
-	@Lob
-	@Column
+	@Column(columnDefinition = "TEXT")
 	private String evidenceText;
 
 	@Builder

@@ -55,19 +55,13 @@ docker compose --profile app down
 
 ---
 
-### 백엔드 개발자 — DB만 컨테이너, 서버는 직접 실행
+### 백엔드 개발자 — bootRun으로 바로 실행
 
-DB만 컨테이너로 띄우고 서버는 로컬에서 직접 실행합니다.
+`spring-boot-docker-compose` 덕분에 `bootRun` 실행 시 DB 컨테이너가 자동으로 함께 실행됩니다. 별도로 `docker compose up`을 실행할 필요가 없습니다.
 
 **필요한 것**: Docker Desktop, Java 21
 
-**1. DB 컨테이너 실행**
-
-```bash
-docker compose up -d
-```
-
-**2. 서버 실행**
+**서버 실행**
 
 IDE(IntelliJ 등)의 EnvFile 플러그인을 활용하거나, 터미널에서 아래와 같이 실행합니다.
 
@@ -77,10 +71,7 @@ export $(grep -v '^#' .env | xargs) && ./gradlew bootRun
 
 > 기본 Spring Boot는 `.env`를 자동으로 로드하지 않으므로 위와 같이 직접 주입해야 합니다.
 
-```bash
-# DB 컨테이너 종료
-docker compose down
-```
+> DB 컨테이너는 서버 종료 시 함께 내려갑니다. 수동으로 종료하려면 `docker compose down`을 사용하세요.
 
 ---
 
