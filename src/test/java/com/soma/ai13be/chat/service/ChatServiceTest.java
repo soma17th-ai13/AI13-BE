@@ -75,7 +75,7 @@ class ChatServiceTest {
 	@Test
 	void sendsFirstMessageAndReturnsAssistantReply() {
 		ChatSession session = sessionWithPersona("health", "health system prompt");
-		when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
+		when(sessionRepository.findByIdWithLock(1L)).thenReturn(Optional.of(session));
 		when(knowledgeContextBuilder.buildContextMessage("health")).thenReturn(java.util.Optional.empty());
 		when(messageRepository.countBySession(session)).thenReturn(0L);
 		when(messageRepository.findBySessionOrderBySequenceAsc(session)).thenReturn(List.of());
@@ -96,7 +96,7 @@ class ChatServiceTest {
 		ChatMessage prevUser = chatMessage(session, 0, ChatMessageRole.USER, "이전 질문");
 		ChatMessage prevAssist = chatMessage(session, 1, ChatMessageRole.ASSISTANT, "이전 답변");
 
-		when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
+		when(sessionRepository.findByIdWithLock(1L)).thenReturn(Optional.of(session));
 		when(knowledgeContextBuilder.buildContextMessage("health")).thenReturn(java.util.Optional.empty());
 		when(messageRepository.countBySession(session)).thenReturn(2L);
 		when(messageRepository.findBySessionOrderBySequenceAsc(session)).thenReturn(List.of(prevUser, prevAssist));
@@ -125,7 +125,7 @@ class ChatServiceTest {
 	@Test
 	void assignsSequentialMessageNumbers() {
 		ChatSession session = sessionWithPersona("health", "prompt");
-		when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
+		when(sessionRepository.findByIdWithLock(1L)).thenReturn(Optional.of(session));
 		when(knowledgeContextBuilder.buildContextMessage("health")).thenReturn(java.util.Optional.empty());
 		when(messageRepository.countBySession(session)).thenReturn(4L);
 		when(messageRepository.findBySessionOrderBySequenceAsc(session)).thenReturn(List.of());
@@ -144,7 +144,7 @@ class ChatServiceTest {
 
 	@Test
 	void rejectsSendMessageForNonExistentSession() {
-		when(sessionRepository.findById(99L)).thenReturn(Optional.empty());
+		when(sessionRepository.findByIdWithLock(99L)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.sendMessage(99L, "질문"))
 			.isInstanceOf(CustomException.class)
@@ -163,7 +163,7 @@ class ChatServiceTest {
 	@Test
 	void throwsSolarResponseEmptyWhenApiReturnsNullContent() {
 		ChatSession session = sessionWithPersona("health", "health system prompt");
-		when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
+		when(sessionRepository.findByIdWithLock(1L)).thenReturn(Optional.of(session));
 		when(knowledgeContextBuilder.buildContextMessage("health")).thenReturn(java.util.Optional.empty());
 		when(messageRepository.countBySession(session)).thenReturn(0L);
 		when(messageRepository.findBySessionOrderBySequenceAsc(session)).thenReturn(List.of());
@@ -220,7 +220,7 @@ class ChatServiceTest {
 	@Test
 	void injectsKnowledgeContextBetweenSystemPromptAndHistory() {
 		ChatSession session = sessionWithPersona("health", "health system prompt");
-		when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
+		when(sessionRepository.findByIdWithLock(1L)).thenReturn(Optional.of(session));
 		when(knowledgeContextBuilder.buildContextMessage("health"))
 			.thenReturn(Optional.of(SolarChatMessage.system("[사용자 지식 그래프 - health 도메인]\n1. 제목: 수면\n   내용: 5시간")));
 		when(messageRepository.countBySession(session)).thenReturn(0L);
@@ -248,7 +248,7 @@ class ChatServiceTest {
 	@Test
 	void skipsKnowledgeContextWhenNoNodes() {
 		ChatSession session = sessionWithPersona("health", "health system prompt");
-		when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
+		when(sessionRepository.findByIdWithLock(1L)).thenReturn(Optional.of(session));
 		when(knowledgeContextBuilder.buildContextMessage("health"))
 			.thenReturn(Optional.empty());
 		when(messageRepository.countBySession(session)).thenReturn(0L);

@@ -57,14 +57,15 @@ public class ChatService {
 		if (!StringUtils.hasText(content)) {
 			throw new CustomException(ErrorCode.INVALID_REQUEST, "content must not be blank");
 		}
-		ChatSession session = findSession(sessionId);
+		ChatSession session = sessionRepository.findByIdWithLock(sessionId)
+			.orElseThrow(() -> new CustomException(ErrorCode.CHAT_SESSION_NOT_FOUND, "Chat session not found: " + sessionId));
 
-		long nextSequence = messageRepository.countBySession(session);
+		int nextSequence = Math.toIntExact(messageRepository.countBySession(session));
 		List<ChatMessage> history = messageRepository.findBySessionOrderBySequenceAsc(session);
 
 		ChatMessage userMessage = messageRepository.save(ChatMessage.builder()
 			.session(session)
-			.sequence((int)nextSequence)
+			.sequence(nextSequence)
 			.role(ChatMessageRole.USER)
 			.content(content.strip())
 			.build());
@@ -73,7 +74,7 @@ public class ChatService {
 
 		return messageRepository.save(ChatMessage.builder()
 			.session(session)
-			.sequence((int)nextSequence + 1)
+			.sequence(nextSequence + 1)
 			.role(ChatMessageRole.ASSISTANT)
 			.content(assistantContent)
 			.build());
