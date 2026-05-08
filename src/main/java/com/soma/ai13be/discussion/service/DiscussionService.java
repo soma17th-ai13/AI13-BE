@@ -82,6 +82,11 @@ public class DiscussionService {
 	@Transactional(readOnly = true)
 	public List<AgentDiscussionMessage> getMessages(Long discussionId) {
 		AgentDiscussion discussion = getDiscussion(discussionId);
+		return getMessages(discussion);
+	}
+
+	@Transactional(readOnly = true)
+	public List<AgentDiscussionMessage> getMessages(AgentDiscussion discussion) {
 		return messageRepository.findByDiscussionOrderByCreatedAtAscIdAsc(discussion);
 	}
 
@@ -198,8 +203,11 @@ public class DiscussionService {
 		if (personaIds == null || personaIds.isEmpty()) {
 			personas = personaRepository.findByEnabledTrueOrderByDomainNameAsc();
 		} else {
-			personas = personaRepository.findAllById(personaIds);
-			validateAllPersonaIdsExist(personaIds, personas);
+			List<Persona> foundPersonas = personaRepository.findAllById(personaIds);
+			validateAllPersonaIdsExist(personaIds, foundPersonas);
+			personas = foundPersonas.stream()
+				.sorted(java.util.Comparator.comparing(p -> personaIds.indexOf(p.getId())))
+				.toList();
 		}
 
 		if (personas.size() < 2) {

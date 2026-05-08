@@ -78,7 +78,7 @@ public class DiscussionController {
 		@PathVariable Long discussionId
 	) {
 		AgentDiscussion discussion = discussionService.getDiscussion(discussionId);
-		List<AgentDiscussionMessage> messages = discussionService.getMessages(discussionId);
+		List<AgentDiscussionMessage> messages = discussionService.getMessages(discussion);
 		return ResponseEntity.ok(DiscussionResult.from(discussion, messages));
 	}
 

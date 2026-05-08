@@ -1,5 +1,6 @@
 package com.soma.ai13be.discussion.controller;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -95,7 +96,7 @@ class DiscussionControllerTest {
 	void returnsDiscussionDetail() throws Exception {
 		AgentDiscussion discussion = completedDiscussion(node());
 		when(discussionService.getDiscussion(1L)).thenReturn(discussion);
-		when(discussionService.getMessages(1L)).thenReturn(List.of(
+		when(discussionService.getMessages(discussion)).thenReturn(List.of(
 			message(discussion, persona("study"), DiscussionRound.REBUTTAL, "학업 반론")
 		));
 
@@ -122,8 +123,8 @@ class DiscussionControllerTest {
 			.andExpect(jsonPath("$[0].personaId").value(1))
 			.andExpect(jsonPath("$[0].personaName").value("health Persona"))
 			.andExpect(jsonPath("$[0].round").value("ANALYSIS"))
-			.andExpect(jsonPath("$[1].personaId").isEmpty())
-			.andExpect(jsonPath("$[1].personaName").isEmpty())
+			.andExpect(jsonPath("$[1].personaId").value(nullValue()))
+			.andExpect(jsonPath("$[1].personaName").value(nullValue()))
 			.andExpect(jsonPath("$[1].round").value("SYNTHESIS"))
 			.andExpect(jsonPath("$[1].content").value("종합"));
 	}
