@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 import com.soma.ai13be.common.client.SolarApiClient;
 import com.soma.ai13be.common.client.dto.SolarChatMessage;
 import com.soma.ai13be.common.client.dto.SolarChatRequest;
+import com.soma.ai13be.common.client.dto.SolarChatResponse;
 import com.soma.ai13be.common.exception.CustomException;
 import com.soma.ai13be.common.exception.ErrorCode;
 import com.soma.ai13be.discussion.entity.AgentDiscussion;
@@ -153,7 +154,16 @@ public class DiscussionService {
 
 	private String callSolar(List<SolarChatMessage> messages) {
 		SolarChatRequest request = new SolarChatRequest(messages, DISCUSSION_TEMPERATURE, DISCUSSION_MAX_TOKENS);
-		String content = solarApiClient.chatCompletion(request).firstContent();
+		SolarChatResponse response;
+		try {
+			response = solarApiClient.chatCompletion(request);
+		} catch (RuntimeException ex) {
+			throw new CustomException(ErrorCode.SOLAR_RESPONSE_EMPTY, "Solar API request failed", ex);
+		}
+		if (response == null) {
+			throw new CustomException(ErrorCode.SOLAR_RESPONSE_EMPTY, "Solar API returned empty response");
+		}
+		String content = response.firstContent();
 		if (!StringUtils.hasText(content)) {
 			throw new CustomException(ErrorCode.SOLAR_RESPONSE_EMPTY, "Solar API returned empty response");
 		}

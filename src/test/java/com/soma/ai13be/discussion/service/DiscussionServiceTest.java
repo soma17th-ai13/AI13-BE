@@ -170,6 +170,47 @@ class DiscussionServiceTest {
 	}
 
 	@Test
+	void rejectsNullSolarResponseAndRecordsFailure() {
+		Persona health = persona("health");
+		Persona study = persona("study");
+		when(personaRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(health, study));
+		when(discussionRepository.save(any(AgentDiscussion.class))).thenAnswer(inv -> {
+			AgentDiscussion discussion = inv.getArgument(0);
+			ReflectionTestUtils.setField(discussion, "id", 11L);
+			return discussion;
+		});
+		when(knowledgeContextBuilder.buildContextMessage(any())).thenReturn(Optional.empty());
+		when(solarApiClient.chatCompletion(any(SolarChatRequest.class))).thenReturn(null);
+
+		assertThatThrownBy(() -> service.createDiscussion("주제", null, List.of(1L, 2L)))
+			.isInstanceOf(CustomException.class)
+			.hasFieldOrPropertyWithValue("errorCode", ErrorCode.SOLAR_RESPONSE_EMPTY)
+			.hasMessageContaining("Solar API returned empty response");
+		verify(failureRecorder).recordFailure(11L, "Solar API returned empty response");
+	}
+
+	@Test
+	void rejectsSolarTransportFailureAndRecordsFailure() {
+		Persona health = persona("health");
+		Persona study = persona("study");
+		when(personaRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(health, study));
+		when(discussionRepository.save(any(AgentDiscussion.class))).thenAnswer(inv -> {
+			AgentDiscussion discussion = inv.getArgument(0);
+			ReflectionTestUtils.setField(discussion, "id", 12L);
+			return discussion;
+		});
+		when(knowledgeContextBuilder.buildContextMessage(any())).thenReturn(Optional.empty());
+		when(solarApiClient.chatCompletion(any(SolarChatRequest.class)))
+			.thenThrow(new RuntimeException("connection refused"));
+
+		assertThatThrownBy(() -> service.createDiscussion("주제", null, List.of(1L, 2L)))
+			.isInstanceOf(CustomException.class)
+			.hasFieldOrPropertyWithValue("errorCode", ErrorCode.SOLAR_RESPONSE_EMPTY)
+			.hasMessageContaining("Solar API request failed");
+		verify(failureRecorder).recordFailure(12L, "Solar API request failed");
+	}
+
+	@Test
 	void returnsDiscussionMessagesInStoredOrder() {
 		AgentDiscussion discussion = AgentDiscussion.builder()
 			.title("주제")
