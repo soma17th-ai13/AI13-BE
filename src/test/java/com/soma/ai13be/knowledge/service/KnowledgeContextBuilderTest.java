@@ -2,6 +2,7 @@ package com.soma.ai13be.knowledge.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -62,6 +63,7 @@ class KnowledgeContextBuilderTest {
         String content = result.get().content();
         assertThat(content).contains("15. 제목:");
         assertThat(content).doesNotContain("16. 제목:");
+        verify(nodeRepository).findByDomainNameOrderByCreatedAtDesc("건강", PageRequest.of(0, 15));
     }
 
     private KnowledgeNode node(String title, String content) {
