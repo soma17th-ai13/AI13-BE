@@ -160,6 +160,22 @@ class ChatServiceTest {
 			.hasMessageContaining("content");
 	}
 
+	@Test
+	void throwsSolarResponseEmptyWhenApiReturnsNullContent() {
+		ChatSession session = sessionWithPersona("health", "health system prompt");
+		when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
+		when(knowledgeContextBuilder.buildContextMessage("health")).thenReturn(java.util.Optional.empty());
+		when(messageRepository.countBySession(session)).thenReturn(0L);
+		when(messageRepository.findBySessionOrderBySequenceAsc(session)).thenReturn(List.of());
+		when(messageRepository.save(any(ChatMessage.class))).thenAnswer(inv -> inv.getArgument(0));
+		when(solarApiClient.chatCompletion(any(SolarChatRequest.class)))
+			.thenReturn(new SolarChatResponse("id", "obj", 0L, "model", List.of(), null));
+
+		assertThatThrownBy(() -> service.sendMessage(1L, "질문"))
+			.isInstanceOf(CustomException.class)
+			.hasFieldOrPropertyWithValue("errorCode", ErrorCode.SOLAR_RESPONSE_EMPTY);
+	}
+
 	// ── getHistory ───────────────────────────────────────────────────────────────
 
 	@Test
