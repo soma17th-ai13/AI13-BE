@@ -82,7 +82,8 @@ public class ChatService {
 
 	@Transactional(readOnly = true)
 	public List<ChatMessage> getHistory(Long sessionId) {
-		ChatSession session = findSession(sessionId);
+		ChatSession session = sessionRepository.findById(sessionId)
+			.orElseThrow(() -> new CustomException(ErrorCode.CHAT_SESSION_NOT_FOUND, "Chat session not found: " + sessionId));
 		return messageRepository.findBySessionOrderBySequenceAsc(session);
 	}
 
@@ -120,8 +121,4 @@ public class ChatService {
 		};
 	}
 
-	private ChatSession findSession(Long sessionId) {
-		return sessionRepository.findById(sessionId)
-			.orElseThrow(() -> new CustomException(ErrorCode.CHAT_SESSION_NOT_FOUND, "Chat session not found: " + sessionId));
-	}
 }
